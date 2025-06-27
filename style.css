@@ -1,0 +1,1014 @@
+/* Basic Reset & Box Sizing */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    /* Light Theme Colors */
+    --bg-color-light: #F8F8F8; /* Very light grey/off-white */
+    --card-bg-light: #FFFFFF;
+    --text-color-light: #333333;
+    --heading-color-light: #222222;
+    --accent-color-light: #FF8C42; /* Soft orange, similar to your example */
+    --expense-color-light: #DC3545; /* Red */
+    --income-color-light: #28A745; /* Green for income */
+    --border-color-light: #EEEEEE;
+    --shadow-color-light: rgba(0, 0, 0, 0.08);
+
+    /* Dark Theme Colors (initial proposal, can be refined) */
+    --bg-color-dark: #2C2C2C;
+    --card-bg-dark: #3A3A3A;
+    --text-color-dark: #E0E0E0;
+    --heading-color-dark: #F5F5F5;
+    --accent-color-dark: #FFA75B;
+    --expense-color-dark: #FF6673;
+    --income-color-dark: #3AD75C;
+    --border-color-dark: #4A4A4A;
+    --shadow-color-dark: rgba(0, 0, 0, 0.3);
+
+    /* Current Theme Variables (JavaScript will switch these) */
+    --bg-color: var(--bg-color-light);
+    --card-bg: var(--card-bg-light);
+    --text-color: var(--text-color-light);
+    --heading-color: var(--heading-color-light);
+    --accent-color: var(--accent-color-light);
+    --expense-color: var(--expense-color-light);
+    --income-color: var(--income-color-light); /* NEW */
+    --border-color: var(--border-color-light);
+    --shadow-color: var(--shadow-color-light);
+
+    /* Fonts */
+    --font-heading: 'Quicksand', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+}
+
+body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to top for longer content */
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 450px; /* Typical phone width */
+    min-height: 100vh;
+    background-color: var(--card-bg);
+    box-shadow: 0 4px 20px var(--shadow-color);
+    border-radius: 15px;
+    overflow: hidden; /* Ensures rounded corners are visible */
+    display: flex;
+    flex-direction: column;
+    position: relative; /* For sticky footer/nav */
+}
+
+/* Header */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--heading-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.app-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color); /* Make title pop with accent */
+}
+
+.toggle-theme-btn {
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: var(--text-color);
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.toggle-theme-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Main Content Area */
+.main-content {
+    flex-grow: 1; /* Takes up available space */
+    padding: 1rem;
+    overflow-y: auto; /* Enable scrolling for content if it overflows */
+    padding-bottom: 70px; /* Space for the fixed bottom nav */
+}
+
+.view {
+    display: none; /* Hide all views by default */
+    padding-top: 1rem; /* Adjust padding for views */
+}
+
+.view.active {
+    display: block; /* Show active view */
+}
+
+.section-title, .subsection-title { /* Added subsection-title */
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.subsection-title {
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+
+/* Dashboard Styles */
+.balance-card {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.balance-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 0.5rem;
+}
+
+.balance-amount {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.quick-actions {
+    display: flex;
+    justify-content: space-around;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.action-btn {
+    background-color: var(--card-bg);
+    color: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    padding: 1rem 0.5rem;
+    border-radius: 10px;
+    flex: 1; /* Distribute space */
+    min-width: 100px; /* Minimum width for buttons */
+    max-width: 130px; /* Max width to prevent stretching too much */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.action-btn i {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.action-btn:hover {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+/* Removed specific colors for icons in quick-actions as they will be defined by the type later */
+
+
+/* Transaction List (both recent and filtered) */
+.transaction-list {
+    list-style: none;
+    padding: 0;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center; /* Align icon with text */
+    background-color: var(--card-bg);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    border-left: 5px solid transparent; /* No default border, set by type */
+}
+
+.transaction-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+    width: 30px; /* Fixed width for consistent alignment */
+    text-align: center;
+}
+
+.transaction-info {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+}
+
+.transaction-description {
+    font-weight: 600;
+    color: var(--heading-color);
+}
+
+.transaction-date, .transaction-category {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.transaction-amount {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Type-specific styles for transaction items */
+.transaction-item.expense {
+    border-left-color: var(--expense-color);
+}
+.transaction-item.expense .transaction-icon,
+.transaction-item.expense .transaction-amount {
+    color: var(--expense-color);
+}
+
+.transaction-item.income {
+    border-left-color: var(--income-color);
+}
+.transaction-item.income .transaction-icon,
+.transaction-item.income .transaction-amount {
+    color: var(--income-color);
+}
+
+
+.transaction-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+}
+
+.transaction-actions button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+.transaction-actions button:hover {
+    opacity: 1;
+    color: var(--accent-color);
+}
+.transaction-actions .delete-btn:hover {
+    color: var(--expense-color); /* Red for delete */
+}
+
+
+.no-transactions, .no-records { /* Added no-records */
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* Form Styles */
+.expense-form .form-group,
+.add-category-section {
+    margin-bottom: 1rem;
+}
+
+.expense-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--heading-color);
+}
+
+.expense-form input[type="text"],
+.expense-form input[type="number"],
+.expense-form input[type="date"],
+.expense-form select,
+.new-category-input,
+.expense-form textarea { /* Added textarea */
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.expense-form textarea {
+    resize: vertical; /* Allow vertical resizing for textareas */
+    min-height: 60px;
+}
+
+.expense-form input:focus,
+.expense-form select:focus,
+.new-category-input:focus,
+.expense-form textarea:focus { /* Added textarea */
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.2); /* For outline effect */
+}
+
+/* Transaction Type Selector (Radio buttons) */
+.transaction-type-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.transaction-type-selector input[type="radio"] {
+    display: none; /* Hide actual radio button */
+}
+
+.transaction-type-selector label {
+    flex: 1;
+    text-align: center;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0; /* Override default label margin */
+}
+
+.transaction-type-selector input[type="radio"]:checked + label {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    border-color: var(--accent-color);
+    box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.transaction-type-selector input[type="radio"] + label:hover {
+    border-color: var(--accent-color);
+}
+
+
+/* Buttons */
+.primary-btn, .secondary-btn {
+    display: block;
+    width: 100%;
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.primary-btn {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+}
+
+.primary-btn:hover {
+    background-color: #E67A32; /* Slightly darker accent */
+    transform: translateY(-1px);
+}
+
+.secondary-btn {
+    background-color: transparent;
+    color: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    margin-top: 0.75rem;
+}
+
+.secondary-btn:hover {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+}
+
+.secondary-btn.small-btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    margin-top: 0;
+}
+
+
+/* Category Management */
+.category-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+.category-item span {
+    font-weight: 600;
+    color: var(--heading-color);
+}
+
+.category-item .action-buttons button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.category-item .action-buttons button:hover {
+    opacity: 1;
+    color: var(--accent-color);
+}
+.category-item .action-buttons .delete-category-btn:hover {
+    color: var(--expense-color);
+}
+
+/* Add Category Section Specifics */
+.add-category-section {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end; /* Align input and button */
+}
+
+.add-category-section .new-category-input {
+    flex-grow: 1;
+    margin-bottom: 0; /* Remove default margin */
+}
+
+.add-category-section .primary-btn {
+    width: auto; /* Don't force full width */
+    margin-top: 0;
+    white-space: nowrap; /* Prevent button text from wrapping */
+}
+
+/* Transaction Filters (for Filtered Transactions View) */
+.transaction-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+    align-items: flex-end;
+}
+.transaction-filters input,
+.transaction-filters select {
+    flex: 1 1 calc(50% - 0.25rem); /* Two items per row, with gap */
+    min-width: 140px; /* Ensure they don't get too small */
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+.transaction-filters input:focus,
+.transaction-filters select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.2);
+}
+.transaction-filters .secondary-btn.small-btn {
+    flex: 1 1 calc(50% - 0.25rem);
+    max-width: calc(50% - 0.25rem);
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+    margin-top: 0; /* Override default button margin */
+}
+
+/* Borrowed/Lent Section Styles */
+.summary-cards {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.summary-card {
+    flex: 1;
+    background-color: var(--card-bg);
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    text-align: center;
+}
+.summary-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--heading-color);
+    margin-bottom: 0.5rem;
+}
+.summary-card .amount {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+.summary-card.owed .amount {
+    color: var(--income-color); /* Green for money owed to you */
+}
+.summary-card.owing .amount {
+    color: var(--expense-color); /* Red for money you owe */
+}
+
+.borrowed-lent-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1rem;
+}
+.borrowed-lent-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--card-bg);
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    border-left: 5px solid var(--border-color); /* Default border */
+}
+.borrowed-lent-item.lent {
+    border-left-color: var(--income-color); /* Green for money you lent */
+}
+.borrowed-lent-item.borrowed {
+    border-left-color: var(--expense-color); /* Red for money you borrowed */
+}
+.borrowed-lent-item.paid {
+    opacity: 0.6; /* Dim paid items */
+    text-decoration: line-through;
+}
+
+.borrowed-lent-info {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+}
+.borrowed-lent-person {
+    font-weight: 600;
+    color: var(--heading-color);
+}
+.borrowed-lent-details {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+.borrowed-lent-notes {
+    font-size: 0.75rem;
+    font-style: italic;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-top: 0.2rem;
+}
+.borrowed-lent-amount {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+}
+.borrowed-lent-item.lent .borrowed-lent-amount {
+    color: var(--income-color);
+}
+.borrowed-lent-item.borrowed .borrowed-lent-amount {
+    color: var(--expense-color);
+}
+.borrowed-lent-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+}
+.borrowed-lent-actions button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+.borrowed-lent-actions button:hover {
+    opacity: 1;
+    color: var(--accent-color);
+}
+.borrowed-lent-actions .delete-btn:hover {
+    color: var(--expense-color);
+}
+.borrowed-lent-actions .paid-btn.active {
+    color: var(--income-color);
+}
+
+
+/* Bottom Navigation */
+.bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    padding: 0.5rem 0;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    box-shadow: 0 -2px 10px var(--shadow-color);
+    z-index: 20;
+}
+
+.nav-item {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.nav-item i {
+    font-size: 1.3rem;
+    margin-bottom: 0.3rem;
+}
+
+.nav-item.active {
+    color: var(--accent-color);
+}
+
+.nav-item:hover {
+    color: var(--accent-color);
+}
+
+/* Theme Toggle Specifics */
+body.dark-theme {
+    --bg-color: var(--bg-color-dark);
+    --card-bg: var(--card-bg-dark);
+    --text-color: var(--text-color-dark);
+    --heading-color: var(--heading-color-dark);
+    --accent-color: var(--accent-color-dark);
+    --expense-color: var(--expense-color-dark);
+    --income-color: var(--income-color-dark); /* NEW */
+    --border-color: var(--border-color-dark);
+    --shadow-color: var(--shadow-color-dark);
+}
+
+/* Utility for RGB values for outline (ensure RGB values are available for both themes) */
+:root {
+    --accent-color-rgb: 255, 140, 66; /* RGB for light theme --accent-color */
+}
+body.dark-theme {
+    --accent-color-rgb: 255, 167, 91; /* RGB for dark theme --accent-color */
+}
+/* Calculator Styles - Fun & Engaging Aesthetic */
+.calculator-container {
+    background-color: #f7f9fc; /* A very light, almost white background */
+    border-radius: 18px; /* More rounded corners for a softer feel */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Softer, more pronounced shadow */
+    padding: 20px;
+    margin-top: 25px;
+    max-width: 320px; /* Slightly wider for better button spacing */
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #e0e6ed; /* Subtle light border */
+    overflow: hidden; /* Ensure shadows and rounded corners play nice */
+}
+
+.calculator-display {
+    margin-bottom: 20px;
+}
+
+.calculator-display input {
+    width: calc(100% - 20px);
+    padding: 15px; /* More padding */
+    font-size: 2.2em; /* Slightly larger font */
+    text-align: right;
+    border: none; /* No visible border for a cleaner look */
+    border-radius: 12px; /* More rounded display */
+    background-color: #eef1f5; /* Light gray background for display */
+    color: #333;
+    font-family: 'Quicksand', sans-serif; /* Use your app's font */
+    font-weight: 700; /* Bolder text for readability */
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05); /* Inner shadow for depth */
+}
+
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px; /* Slightly more space between buttons */
+}
+
+.calc-btn {
+    padding: 18px; /* More generous padding */
+    font-size: 1.3em; /* Slightly larger button text */
+    border: none;
+    border-radius: 15px; /* Significantly more rounded, pill-like buttons */
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Springy transition */
+    background: linear-gradient(145deg, #f0f2f5, #e0e2e5); /* Subtle light gradient */
+    color: #4a4a4a;
+    font-weight: 600; /* Good balance of bold */
+    box-shadow: 3px 3px 7px #c9ccd0, -3px -3px 7px #ffffff; /* Soft, modern "neumorphic" shadow */
+}
+
+.calc-btn:hover {
+    transform: translateY(-2px); /* More pronounced lift */
+    box-shadow: 5px 5px 10px #c9ccd0, -5px -5px 10px #ffffff; /* Stronger shadow on hover */
+}
+
+.calc-btn:active {
+    transform: translateY(0);
+    box-shadow: inset 2px 2px 5px #c9ccd0, inset -2px -2px 5px #ffffff; /* "Pressed in" effect */
+    background: linear-gradient(145deg, #e0e2e5, #f0f2f5); /* Invert gradient on active */
+}
+
+/* Specific button styles - Brighter & More Expressive */
+.calc-btn.operator {
+    background: linear-gradient(145deg, #8bc34a, #7cb342); /* Fresh green for operators */
+    color: white;
+    box-shadow: 3px 3px 7px rgba(139, 195, 74, 0.4), -3px -3px 7px #aed581;
+}
+.calc-btn.operator:hover {
+    background: linear-gradient(145deg, #7cb342, #8bc34a);
+    box-shadow: 5px 5px 10px rgba(139, 195, 74, 0.6), -5px -5px 10px #aed581;
+}
+.calc-btn.operator:active {
+    background: linear-gradient(145deg, #7cb342, #8bc34a);
+    box-shadow: inset 2px 2px 5px #689f38, inset -2px -2px 5px #aed581;
+}
+
+
+.calc-btn.clear {
+    background: linear-gradient(145deg, #ff6b6b, #e04a4a); /* Vibrant red */
+    color: white;
+    box-shadow: 3px 3px 7px rgba(255, 107, 107, 0.4), -3px -3px 7px #ff8a8a;
+}
+.calc-btn.clear:hover {
+    background: linear-gradient(145deg, #e04a4a, #ff6b6b);
+    box-shadow: 5px 5px 10px rgba(255, 107, 107, 0.6), -5px -5px 10px #ff8a8a;
+}
+.calc-btn.clear:active {
+    background: linear-gradient(145deg, #e04a4a, #ff6b6b);
+    box-shadow: inset 2px 2px 5px #c63b3b, inset -2px -2px 5px #ff8a8a;
+}
+
+
+.calc-btn.equals {
+    background: linear-gradient(145deg, #64b5f6, #42a5f5); /* Bright blue */
+    color: white;
+    grid-column: span 2;
+    box-shadow: 3px 3px 7px rgba(100, 181, 246, 0.4), -3px -3px 7px #82b1ff;
+}
+.calc-btn.equals:hover {
+    background: linear-gradient(145deg, #42a5f5, #64b5f6);
+    box-shadow: 5px 5px 10px rgba(100, 181, 246, 0.6), -5px -5px 10px #82b1ff;
+}
+.calc-btn.equals:active {
+    background: linear-gradient(145deg, #42a5f5, #64b5f6);
+    box-shadow: inset 2px 2px 5px #1976d2, inset -2px -2px 5px #82b1ff;
+}
+
+
+.calc-btn.apply-calc {
+    background: linear-gradient(145deg, #66bb6a, #4caf50); /* Cheerful green */
+    color: white;
+    grid-column: span 2;
+    box-shadow: 3px 3px 7px rgba(102, 187, 106, 0.4), -3px -3px 7px #81c784;
+}
+.calc-btn.apply-calc:hover {
+    background: linear-gradient(145deg, #4caf50, #66bb6a);
+    box-shadow: 5px 5px 10px rgba(102, 187, 106, 0.6), -5px -5px 10px #81c784;
+}
+.calc-btn.apply-calc:active {
+    background: linear-gradient(145deg, #4caf50, #66bb6a);
+    box-shadow: inset 2px 2px 5px #388e3c, inset -2px -2px 5px #81c784;
+}
+
+
+.calc-btn.zero {
+    grid-column: span 2;
+}
+
+.calc-btn.backspace {
+    background: linear-gradient(145deg, #bdbdbd, #a0a0a0); /* Soft gray for backspace */
+    color: #4a4a4a;
+    box-shadow: 3px 3px 7px rgba(189, 189, 189, 0.4), -3px -3px 7px #e0e0e0;
+}
+.calc-btn.backspace:hover {
+    background: linear-gradient(145deg, #a0a0a0, #bdbdbd);
+    box-shadow: 5px 5px 10px rgba(189, 189, 189, 0.6), -5px -5px 10px #e0e0e0;
+}
+.calc-btn.backspace:active {
+    background: linear-gradient(145deg, #a0a0a0, #bdbdbd);
+    box-shadow: inset 2px 2px 5px #757575, inset -2px -2px 5px #e0e0e0;
+}
+
+
+/* Dark Mode Calculator Styles - Vibrant & Cohesive */
+body.dark-theme .calculator-container {
+    background-color: #2b3b55; /* Darker, slightly desaturated blue */
+    border: 1px solid #3c506d;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .calculator-display input {
+    background-color: #1f2a3a;
+    color: #e0e0e0;
+    border: none;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .calc-btn {
+    background: linear-gradient(145deg, #3a4c6a, #2f405c);
+    color: #e0e0e0;
+    box-shadow: 3px 3px 7px #212c3d, -3px -3px 7px #3b4e6d;
+}
+
+body.dark-theme .calc-btn:hover {
+    background: linear-gradient(145deg, #2f405c, #3a4c6a);
+    box-shadow: 5px 5px 10px #212c3d, -5px -5px 10px #3b4e6d;
+}
+
+body.dark-theme .calc-btn:active {
+    background: linear-gradient(145deg, #2f405c, #3a4c6a);
+    box-shadow: inset 2px 2px 5px #1a222e, inset -2px -2px 5px #3b4e6d;
+}
+
+body.dark-theme .calc-btn.operator {
+    background: linear-gradient(145deg, #6c9a4c, #5a803f); /* Darker green */
+    box-shadow: 3px 3px 7px rgba(108, 154, 76, 0.4), -3px -3px 7px #72a850;
+}
+body.dark-theme .calc-btn.operator:hover {
+    background: linear-gradient(145deg, #5a803f, #6c9a4c);
+    box-shadow: 5px 5px 10px rgba(108, 154, 76, 0.6), -5px -5px 10px #72a850;
+}
+body.dark-theme .calc-btn.operator:active {
+    background: linear-gradient(145deg, #5a803f, #6c9a4c);
+    box-shadow: inset 2px 2px 5px #42602e, inset -2px -2px 5px #72a850;
+}
+
+
+body.dark-theme .calc-btn.clear {
+    background: linear-gradient(145deg, #d32f2f, #b71c1c); /* Darker red */
+    box-shadow: 3px 3px 7px rgba(211, 47, 47, 0.4), -3px -3px 7px #e53935;
+}
+body.dark-theme .calc-btn.clear:hover {
+    background: linear-gradient(145deg, #b71c1c, #d32f2f);
+    box-shadow: 5px 5px 10px rgba(211, 47, 47, 0.6), -5px -5px 10px #e53935;
+}
+body.dark-theme .calc-btn.clear:active {
+    background: linear-gradient(145deg, #b71c1c, #d32f2f);
+    box-shadow: inset 2px 2px 5px #9a1717, inset -2px -2px 5px #e53935;
+}
+
+
+body.dark-theme .calc-btn.equals {
+    background: linear-gradient(145deg, #1e88e5, #1565c0); /* Darker blue */
+    box-shadow: 3px 3px 7px rgba(30, 136, 229, 0.4), -3px -3px 7px #2979ff;
+}
+body.dark-theme .calc-btn.equals:hover {
+    background: linear-gradient(145deg, #1565c0, #1e88e5);
+    box-shadow: 5px 5px 10px rgba(30, 136, 229, 0.6), -5px -5px 10px #2979ff;
+}
+body.dark-theme .calc-btn.equals:active {
+    background: linear-gradient(145deg, #1565c0, #1e88e5);
+    box-shadow: inset 2px 2px 5px #0d47a1, inset -2px -2px 5px #2979ff;
+}
+
+
+body.dark-theme .calc-btn.apply-calc {
+    background: linear-gradient(145deg, #388e3c, #2e7d32); /* Darker green */
+    box-shadow: 3px 3px 7px rgba(56, 142, 60, 0.4), -3px -3px 7px #4caf50;
+}
+body.dark-theme .calc-btn.apply-calc:hover {
+    background: linear-gradient(145deg, #2e7d32, #388e3c);
+    box-shadow: 5px 5px 10px rgba(56, 142, 60, 0.6), -5px -5px 10px #4caf50;
+}
+body.dark-theme .calc-btn.apply-calc:active {
+    background: linear-gradient(145deg, #2e7d32, #388e3c);
+    box-shadow: inset 2px 2px 5px #1b5e20, inset -2px -2px 5px #4caf50;
+}
+
+
+body.dark-theme .calc-btn.backspace {
+    background: linear-gradient(145deg, #424242, #303030); /* Darker gray */
+    color: #bdbdbd;
+    box-shadow: 3px 3px 7px rgba(66, 66, 66, 0.4), -3px -3px 7px #5a5a5a;
+}
+body.dark-theme .calc-btn.backspace:hover {
+    background: linear-gradient(145deg, #303030, #424242);
+    box-shadow: 5px 5px 10px rgba(66, 66, 66, 0.6), -5px -5px 10px #5a5a5a;
+}
+body.dark-theme .calc-btn.backspace:active {
+    background: linear-gradient(145deg, #303030, #424242);
+    box-shadow: inset 2px 2px 5px #1a1a1a, inset -2px -2px 5px #5a5a5a;
+}
+
+/* Styles for the Calculator Toggle Button in Header */
+.toggle-calculator-btn {
+    font-size: 1.4em; /* Adjust size as needed */
+    color: var(--text-color); /* Inherit text color from theme */
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+    padding: 5px;
+    border-radius: 50%; /* Make it circular */
+}
+
+.toggle-calculator-btn:hover {
+    color: var(--primary-color); /* Hover color from your theme */
+    transform: scale(1.1);
+}
+
+body.dark-theme .toggle-calculator-btn {
+    color: var(--dark-theme-text-color); /* Adjust for dark mode */
+}
+body.dark-theme .toggle-calculator-btn:hover {
+    color: var(--dark-theme-primary-color); /* Adjust for dark mode hover */
+}
+
+
+/* Positioning for the Global Calculator Container */
+.calculator-container {
+    /* Existing styles for background, border-radius, etc. */
+    position: fixed; /* Crucial for making it float above other content */
+    bottom: 90px; /* Adjust as needed, e.g., above bottom navigation */
+    right: 20px; /* Or left: 20px; to place on the other side */
+    z-index: 1000; /* Ensure it's on top of other elements */
+    /* Add max-width and margin auto if you want it centered horizontally when opened */
+    /* If you keep max-width, make sure it's responsive */
+    max-width: 300px; /* Keep this to control width */
+    transform: translateY(0); /* For potential animation */
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+/* Optional: Animation for showing/hiding */
+.calculator-container[style*="display: block"] {
+    transform: translateY(0);
+    opacity: 1;
+}
+.calculator-container[style*="display: none"] {
+    transform: translateY(20px); /* Move down slightly when hidden */
+    opacity: 0;
+    pointer-events: none; /* Disable interaction when hidden */
+}
+
+/* Ensure the header-right aligns properly */
+.app-header .header-right {
+    display: flex;
+    gap: 15px; /* Space between icons */
+    align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .app-container {
+        border-radius: 0; /* Remove rounded corners on very small screens */
+    }
+}
+@media (min-width: 451px) { /* Adjust quick actions on larger screen */
+    .quick-actions .action-btn {
+        flex: none;
+        width: 100px;
+    }
+}
