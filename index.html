@@ -164,6 +164,48 @@
                 </form>
             </section>
 
+            <section id="budget-view" class="view">
+                <h2 class="section-title">Monthly Budget</h2>
+                <div class="budget-controls">
+                    <button id="prev-month-btn" class="icon-btn"><i class="fas fa-chevron-left"></i></button>
+                    <span id="current-budget-month" class="month-display">July 2025</span>
+                    <button id="next-month-btn" class="icon-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+
+                <div class="form-group budget-goal-input-group">
+                    <label for="monthly-budget-goal">Set Monthly Budget Goal (₹)</label>
+                    <input type="number" id="monthly-budget-goal" placeholder="e.g., 10000" step="0.01">
+                    <button id="save-budget-goal-btn" class="primary-btn small-btn">Save</button>
+                </div>
+
+                <div class="budget-summary-card">
+                    <div class="summary-item">
+                        <p class="summary-label">Budget Goal</p>
+                        <p class="summary-value budget-goal">₹ <span id="display-budget-goal">0.00</span></p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">Total Expenses</p>
+                        <p class="summary-value total-expenses">₹ <span id="display-total-expenses">0.00</span></p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">Remaining Budget</p>
+                        <p class="summary-value remaining-budget">₹ <span id="display-remaining-budget" class="positive">0.00</span></p>
+                    </div>
+                </div>
+
+                <div class="budget-progress-bar-container">
+                    <div class="budget-progress-bar" id="budget-progress-bar"></div>
+                </div>
+                <p class="progress-label" id="budget-progress-label">0% of budget used</p>
+
+                <h3 class="subsection-title">Expenses by Category for this Month</h3>
+                <ul id="budget-category-expenses-list" class="category-summary-list">
+                    <li class="no-categories">No expenses for this month.</li>
+                </ul>
+
+                <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
+            </section>
+
 
         </main>
 
@@ -217,6 +259,9 @@
             </button>
             <button class="nav-item" data-view="borrowed-lent-view">
                 <i class="fas fa-hand-holding-dollar"></i> <span>Debts</span>
+            </button>
+            <button class="nav-item" data-view="budget-view"> <i class="fas fa-chart-pie"></i>
+                <span>Budget</span>
             </button>
             </nav>
     </div>
@@ -279,6 +324,20 @@
             const saveBorrowLentBtn = document.getElementById('save-borrow-lent-btn');
             const backToBorrowLentBtn = document.querySelector('.back-to-borrow-lent-btn');
 
+            // --- NEW: Budget Section Elements ---
+            const prevMonthBtn = document.getElementById('prev-month-btn');
+            const nextMonthBtn = document.getElementById('next-month-btn');
+            const currentBudgetMonthDisplay = document.getElementById('current-budget-month');
+            const monthlyBudgetGoalInput = document.getElementById('monthly-budget-goal');
+            const saveBudgetGoalBtn = document.getElementById('save-budget-goal-btn');
+            const displayBudgetGoal = document.getElementById('display-budget-goal');
+            const displayTotalExpenses = document.getElementById('display-total-expenses');
+            const displayRemainingBudget = document.getElementById('display-remaining-budget');
+            const budgetProgressBar = document.getElementById('budget-progress-bar');
+            const budgetProgressLabel = document.getElementById('budget-progress-label');
+            const budgetCategoryExpensesList = document.getElementById('budget-category-expenses-list');
+            const noBudgetCategoryExpensesMessage = budgetCategoryExpensesList.querySelector('.no-categories'); // Renamed from no-transactions to no-categories to be specific for budget
+
 
             // Theme toggle
             const themeToggleBtn = document.getElementById('themeToggle');
@@ -301,6 +360,10 @@
             let categories = JSON.parse(localStorage.getItem('categories')) || ['Food', 'Transport', 'Study', 'Entertainment', 'Rent', 'Utilities', 'Shopping', 'Others'];
             let borrowedLentRecords = JSON.parse(localStorage.getItem('borrowedLentRecords')) || []; // NEW: for borrowed/lent money
             let currentTheme = localStorage.getItem('theme') || 'light'; // Default theme
+            // NEW: Budget related data
+            // Store budgets as an object where key is "YYYY-MM" (e.g., "2025-07") and value is the goal amount
+            let monthlyBudgets = JSON.parse(localStorage.getItem('monthlyBudgets')) || {};
+            let currentBudgetMonth = new Date(); // Tracks the month currently displayed in the budget section
 
             // --- Global Filtering State for the Filtered Transactions Section ---
             let currentFilter = {
@@ -327,6 +390,7 @@
                 borrowLentDateInput.valueAsDate = new Date(); // Default date for borrowed/lent form
                 calculatorContainer.style.display = 'none'; // Ensure calculator is hidden on load
                 resetCalculator(); // Reset calculator state
+                initializeBudgetSection(); // NEW: Initialize budget section
             }
 
             function applyTheme(theme) {
@@ -377,6 +441,8 @@
                     displayBorrowedLentRecords();
                 } else if (viewId === 'add-borrow-lent-view') { // NEW
                     resetBorrowLentForm();
+                } else if (viewId === 'budget-view') { // NEW: Budget View Activation
+                    updateBudgetDisplay();
                 }
             }
 
@@ -511,6 +577,7 @@
                 localStorage.setItem('transactions', JSON.stringify(transactions));
                 resetTransactionForm();
                 switchView('dashboard-view'); // Go back to dashboard
+                updateBudgetDisplay(); // Update budget display if needed
             }
 
             function deleteTransaction(id) {
@@ -521,6 +588,9 @@
                     displayRecentTransactions(); // Refresh recent list
                     if (document.getElementById('filtered-transactions-view').classList.contains('active')) {
                         displayFilteredTransactions(); // Refresh filtered list if active
+                    }
+                    if (document.getElementById('budget-view').classList.contains('active')) { // NEW
+                        updateBudgetDisplay();
                     }
                 }
             }
@@ -673,6 +743,9 @@
                     if (document.getElementById('filtered-transactions-view').classList.contains('active')) {
                         displayFilteredTransactions(); // Refresh filtered list if active
                     }
+                    if (document.getElementById('budget-view').classList.contains('active')) { // NEW
+                        updateBudgetDisplay();
+                    }
                 }
             }
 
@@ -703,6 +776,9 @@
                         displayRecentTransactions(); // Refresh dashboard if needed
                          if (document.getElementById('filtered-transactions-view').classList.contains('active')) {
                             displayFilteredTransactions(); // Refresh filtered list if active
+                        }
+                        if (document.getElementById('budget-view').classList.contains('active')) { // NEW
+                            updateBudgetDisplay();
                         }
                         alert(`Category updated to "${trimmedNewName}"!`);
                     }
@@ -850,6 +926,136 @@
                 saveBorrowLentBtn.textContent = 'Save Record';
                 document.getElementById('type-lent').checked = true; // Default to Money Lent
                 borrowLentDateInput.valueAsDate = new Date();
+            }
+
+            // --- NEW: Budget Section Functions ---
+
+            function initializeBudgetSection() {
+                // Set currentBudgetMonth to the current month by default
+                currentBudgetMonth = new Date();
+                updateBudgetDisplay();
+            }
+
+            function getMonthYearString(date) {
+                const options = { year: 'numeric', month: 'long' };
+                return date.toLocaleDateString('en-US', options); // e.g., "July 2025"
+            }
+
+            function getBudgetKey(date) {
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 0-indexed month, pad with leading zero
+                return `${year}-${month}`; // e.g., "2025-07"
+            }
+
+            function updateBudgetDisplay() {
+                const monthYearStr = getMonthYearString(currentBudgetMonth);
+                currentBudgetMonthDisplay.textContent = monthYearStr;
+
+                const budgetKey = getBudgetKey(currentBudgetMonth);
+                const budgetGoal = monthlyBudgets[budgetKey] || 0; // Default to 0 if no budget set
+
+                monthlyBudgetGoalInput.value = budgetGoal > 0 ? budgetGoal : ''; // Set input field, clear if 0
+                displayBudgetGoal.textContent = parseFloat(budgetGoal).toFixed(2);
+
+                // Calculate expenses for the current month
+                const expensesForMonth = transactions.filter(t => {
+                    if (t.type !== 'expense') return false; // Only count expenses
+                    const transactionDate = new Date(t.date);
+                    return transactionDate.getFullYear() === currentBudgetMonth.getFullYear() &&
+                           transactionDate.getMonth() === currentBudgetMonth.getMonth();
+                });
+
+                const totalExpenses = expensesForMonth.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+                displayTotalExpenses.textContent = totalExpenses.toFixed(2);
+
+                const remainingBudget = budgetGoal - totalExpenses;
+                displayRemainingBudget.textContent = remainingBudget.toFixed(2);
+
+                // Apply color based on remaining budget
+                if (remainingBudget >= 0) {
+                    displayRemainingBudget.classList.remove('negative');
+                    displayRemainingBudget.classList.add('positive');
+                } else {
+                    displayRemainingBudget.classList.remove('positive');
+                    displayRemainingBudget.classList.add('negative');
+                }
+
+                // Update progress bar
+                let percentageUsed = 0;
+                if (budgetGoal > 0) {
+                    percentageUsed = (totalExpenses / budgetGoal) * 100;
+                }
+                // Cap percentage at 100% for display purposes on the bar
+                const progressBarWidth = Math.min(percentageUsed, 100);
+                budgetProgressBar.style.width = `${progressBarWidth}%`;
+
+                // Change progress bar color based on percentage
+                if (percentageUsed <= 50) {
+                    budgetProgressBar.style.backgroundColor = '#4CAF50'; // Green
+                } else if (percentageUsed <= 80) {
+                    budgetProgressBar.style.backgroundColor = '#ffc107'; // Yellow
+                } else {
+                    budgetProgressBar.style.backgroundColor = '#f44336'; // Red
+                }
+
+                budgetProgressLabel.textContent = `${percentageUsed.toFixed(0)}% of budget used`;
+
+                // Display expenses by category for the month
+                displayCategoryExpensesForMonth(expensesForMonth);
+            }
+
+            function displayCategoryExpensesForMonth(expenses) {
+                budgetCategoryExpensesList.innerHTML = '';
+                const categoryTotals = {};
+
+                expenses.forEach(t => {
+                    if (categoryTotals[t.category]) {
+                        categoryTotals[t.category] += parseFloat(t.amount);
+                    } else {
+                        categoryTotals[t.category] = parseFloat(t.amount);
+                    }
+                });
+
+                const sortedCategories = Object.keys(categoryTotals).sort((a, b) => categoryTotals[b] - categoryTotals[a]);
+
+                if (sortedCategories.length === 0) {
+                    if (!budgetCategoryExpensesList.contains(noBudgetCategoryExpensesMessage)) {
+                        budgetCategoryExpensesList.appendChild(noBudgetCategoryExpensesMessage);
+                    }
+                    noBudgetCategoryExpensesMessage.style.display = 'block';
+                    return;
+                } else {
+                    noBudgetCategoryExpensesMessage.style.display = 'none';
+                }
+
+                sortedCategories.forEach(category => {
+                    const li = document.createElement('li');
+                    li.className = 'category-summary-item';
+                    li.innerHTML = `
+                        <span>${category}</span>
+                        <span>₹ ${categoryTotals[category].toFixed(2)}</span>
+                    `;
+                    budgetCategoryExpensesList.appendChild(li);
+                });
+            }
+
+            function saveMonthlyBudgetGoal() {
+                let goal = parseFloat(monthlyBudgetGoalInput.value);
+                if (isNaN(goal) || goal < 0) {
+                    goal = 0; // Set to 0 if invalid input
+                }
+
+                const budgetKey = getBudgetKey(currentBudgetMonth);
+                monthlyBudgets[budgetKey] = goal;
+                localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
+                updateBudgetDisplay();
+                alert('Monthly budget goal saved!');
+            }
+
+            function changeBudgetMonth(direction) {
+                // direction: -1 for previous, 1 for next
+                currentBudgetMonth.setMonth(currentBudgetMonth.getMonth() + direction);
+                updateBudgetDisplay();
             }
 
             // --- Calculator Functions ---
@@ -1052,6 +1258,15 @@
                 }
             });
 
+            // --- NEW: Budget Section Event Listeners ---
+            prevMonthBtn.addEventListener('click', () => changeBudgetMonth(-1));
+            nextMonthBtn.addEventListener('click', () => changeBudgetMonth(1));
+            saveBudgetGoalBtn.addEventListener('click', saveMonthlyBudgetGoal);
+            monthlyBudgetGoalInput.addEventListener('keydown', (e) => { // Allow pressing Enter to save budget
+                if (e.key === 'Enter') {
+                    saveMonthlyBudgetGoal();
+                }
+            });
 
             // Theme Toggle
             themeToggleBtn.addEventListener('click', () => {
