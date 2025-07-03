@@ -39,10 +39,28 @@
     --border-color: var(--border-color-light);
     --shadow-color: var(--shadow-color-light);
 
-    /* Fonts */
-    --font-heading: 'Quicksand', sans-serif;
-    --font-body: 'Nunito', sans-serif;
+    /* Additional color for accent-color-rgb for box-shadows */
+    --accent-color-rgb: 255, 140, 66; /* For RGBA shadows */
+
+    /* Fonts (Updated for smoother look) */
+    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Roboto', sans-serif;
 }
+
+/* Dark Theme specific overrides */
+.dark-theme {
+    --bg-color: var(--bg-color-dark);
+    --card-bg: var(--card-bg-dark);
+    --text-color: var(--text-color-dark);
+    --heading-color: var(--heading-color-dark);
+    --accent-color: var(--accent-color-dark);
+    --expense-color: var(--expense-color-dark);
+    --income-color: var(--income-color-dark);
+    --border-color: var(--border-color-dark);
+    --shadow-color: var(--shadow-color-dark);
+    --accent-color-rgb: 255, 167, 91; /* Corresponding RGB for dark accent */
+}
+
 
 body {
     font-family: var(--font-body);
@@ -90,7 +108,7 @@ body {
     color: var(--accent-color); /* Make title pop with accent */
 }
 
-.toggle-theme-btn {
+.toggle-theme-btn, .toggle-calculator-btn { /* Combined styles */
     font-size: 1.4rem;
     cursor: pointer;
     color: var(--text-color);
@@ -99,8 +117,12 @@ body {
     transition: background-color 0.2s ease;
 }
 
-.toggle-theme-btn:hover {
+.toggle-theme-btn:hover, .toggle-calculator-btn:hover {
     background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark-theme .toggle-theme-btn:hover, .dark-theme .toggle-calculator-btn:hover {
+     background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Main Content Area */
@@ -163,10 +185,10 @@ body {
 
 .quick-actions {
     display: flex;
-    justify-content: space-around;
+    justify-content: center; /* Center the remaining button */
     gap: 0.5rem;
     margin-bottom: 2rem;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap;
 }
 
 .action-btn {
@@ -175,7 +197,7 @@ body {
     border: 2px solid var(--accent-color);
     padding: 1rem 0.5rem;
     border-radius: 10px;
-    flex: 1; /* Distribute space */
+    flex: 0 0 auto; /* Prevent stretching */
     min-width: 100px; /* Minimum width for buttons */
     max-width: 130px; /* Max width to prevent stretching too much */
     display: flex;
@@ -292,7 +314,7 @@ body {
 }
 
 
-.no-transactions, .no-records { /* Added no-records */
+.no-transactions, .no-records, .no-categories { /* Added no-records, no-categories */
     text-align: center;
     color: var(--text-color);
     opacity: 0.7;
@@ -398,11 +420,14 @@ body {
     background-color: var(--accent-color);
     color: #FFFFFF;
 }
-
 .primary-btn:hover {
     background-color: #E67A32; /* Slightly darker accent */
     transform: translateY(-1px);
 }
+.dark-theme .primary-btn:hover {
+    background-color: #FF8C42; /* Adjust for dark theme hover */
+}
+
 
 .secondary-btn {
     background-color: transparent;
@@ -410,10 +435,13 @@ body {
     border: 2px solid var(--accent-color);
     margin-top: 0.75rem;
 }
-
 .secondary-btn:hover {
     background-color: var(--accent-color);
     color: #FFFFFF;
+}
+.dark-theme .secondary-btn:hover {
+    background-color: var(--accent-color-dark); /* Adjust for dark theme hover */
+    color: #333333; /* Darker text on hover for dark theme */
 }
 
 .secondary-btn.small-btn {
@@ -428,7 +456,6 @@ body {
     padding: 0;
     margin-bottom: 1.5rem;
 }
-
 .category-item {
     display: flex;
     justify-content: space-between;
@@ -440,10 +467,18 @@ body {
     margin-bottom: 0.5rem;
     box-shadow: 0 1px 3px var(--shadow-color);
 }
+.dark-theme .category-item {
+    background-color: var(--card-bg-dark);
+    border-color: var(--border-color-dark);
+    box-shadow: 0 1px 3px var(--shadow-color-dark);
+}
 
 .category-item span {
     font-weight: 600;
     color: var(--heading-color);
+}
+.dark-theme .category-item span {
+    color: var(--heading-color-dark);
 }
 
 .category-item .action-buttons button {
@@ -470,12 +505,10 @@ body {
     gap: 0.5rem;
     align-items: flex-end; /* Align input and button */
 }
-
 .add-category-section .new-category-input {
     flex-grow: 1;
     margin-bottom: 0; /* Remove default margin */
 }
-
 .add-category-section .primary-btn {
     width: auto; /* Don't force full width */
     margin-top: 0;
@@ -491,7 +524,6 @@ body {
     justify-content: center;
     align-items: flex-end;
 }
-
 .transaction-filters input, .transaction-filters select {
     flex: 1 1 calc(50% - 0.25rem); /* Two items per row, with gap */
     min-width: 140px; /* Ensure they don't get too small */
@@ -504,13 +536,11 @@ body {
     color: var(--text-color);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .transaction-filters input:focus, .transaction-filters select:focus {
     outline: none;
     border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.2);
 }
-
 .transaction-filters button {
     flex: 1 1 calc(50% - 0.25rem); /* Two buttons per row, with gap */
     max-width: none; /* Allow full width if needed */
@@ -524,50 +554,47 @@ body {
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
 }
-
 .summary-card {
     background-color: var(--card-bg);
     padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 4px 10px var(--shadow-color);
-    text-align: center;
     flex: 1;
     min-width: 150px;
-    max-width: 48%; /* To allow two cards per row */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    text-align: center;
+}
+.dark-theme .summary-card {
+    background-color: var(--card-bg-dark);
+    box-shadow: 0 4px 10px var(--shadow-color-dark);
 }
 
 .summary-card h3 {
     font-family: var(--font-heading);
     font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
     color: var(--heading-color);
+    margin-bottom: 0.5rem;
+}
+.dark-theme .summary-card h3 {
+    color: var(--heading-color-dark);
 }
 
 .summary-card .amount {
     font-family: var(--font-heading);
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--text-color);
 }
-
 .summary-card.owed .amount {
-    color: var(--income-color); /* Green for money owed to you */
+    color: var(--income-color); /* Green for money owed TO you */
+}
+.summary-card.owing .amount {
+    color: var(--expense-color); /* Red for money you OWE */
 }
 
-.summary-card.owing .amount {
-    color: var(--expense-color); /* Red for money you owe */
-}
 
 .borrowed-lent-list {
     list-style: none;
     padding: 0;
-    margin-top: 1rem;
 }
-
 .borrowed-lent-item {
     display: flex;
     align-items: center;
@@ -577,53 +604,87 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 5px var(--shadow-color);
     border-left: 5px solid transparent;
+    position: relative; /* For the "paid" overlay */
+}
+.dark-theme .borrowed-lent-item {
+    background-color: var(--card-bg-dark);
+    box-shadow: 0 2px 5px var(--shadow-color-dark);
 }
 
 .borrowed-lent-item.lent {
     border-left-color: var(--income-color);
 }
-.borrowed-lent-item.lent .record-amount {
-    color: var(--income-color);
-}
-
 .borrowed-lent-item.borrowed {
     border-left-color: var(--expense-color);
 }
-.borrowed-lent-item.borrowed .record-amount {
-    color: var(--expense-color);
+.borrowed-lent-item.paid {
+    opacity: 0.6; /* Dim paid items */
+    text-decoration: line-through; /* Strikethrough paid items */
+}
+.borrowed-lent-item.paid::after {
+    content: 'PAID / RETURNED';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: rgba(var(--accent-color-rgb), 0.7);
+    background-color: rgba(var(--card-bg-rgb), 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    border: 2px solid rgba(var(--accent-color-rgb), 0.7);
+    white-space: nowrap;
+    pointer-events: none; /* Allows clicks on elements underneath */
+    z-index: 2;
+}
+.dark-theme .borrowed-lent-item.paid::after {
+    background-color: rgba(var(--card-bg-dark-rgb), 0.8);
+    color: rgba(var(--accent-color-dark-rgb), 0.7);
+    border-color: rgba(var(--accent-color-dark-rgb), 0.7);
 }
 
-.record-info {
+
+.borrowed-lent-info {
     flex-grow: 1;
     margin-right: 0.5rem;
 }
-
-.record-person {
+.borrowed-lent-description {
     font-weight: 600;
     color: var(--heading-color);
 }
-
-.record-details {
+.borrowed-lent-date, .borrowed-lent-notes {
     font-size: 0.85rem;
     color: var(--text-color);
     opacity: 0.8;
 }
+.borrowed-lent-item .person-name {
+    font-weight: 700;
+    color: var(--accent-color);
+}
 
-.record-amount {
+.borrowed-lent-amount {
     font-family: var(--font-heading);
     font-size: 1.2rem;
     font-weight: 700;
     text-align: right;
     white-space: nowrap;
+    margin-left: auto; /* Push to the right */
+    color: var(--text-color); /* Default color */
+}
+.borrowed-lent-item.lent .borrowed-lent-amount {
+    color: var(--income-color);
+}
+.borrowed-lent-item.borrowed .borrowed-lent-amount {
+    color: var(--expense-color);
 }
 
-.record-actions {
+.borrowed-lent-actions {
     display: flex;
     gap: 0.5rem;
     margin-left: 0.5rem;
 }
-
-.record-actions button {
+.borrowed-lent-actions button {
     background: none;
     border: none;
     color: var(--text-color);
@@ -632,458 +693,60 @@ body {
     opacity: 0.7;
     transition: opacity 0.2s ease, color 0.2s ease;
 }
-.record-actions button:hover {
+.borrowed-lent-actions button:hover {
     opacity: 1;
     color: var(--accent-color);
 }
-.record-actions .delete-btn:hover {
+.borrowed-lent-actions .delete-borrow-lent-btn:hover {
     color: var(--expense-color);
 }
-.record-paid-status {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-left: 0.5rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 5px;
-    background-color: var(--border-color);
-    color: var(--text-color);
-}
-.record-paid-status.paid {
-    background-color: var(--income-color);
-    color: #fff;
+.borrowed-lent-actions .toggle-paid-btn .fa-check-circle {
+    color: var(--income-color); /* Green for marked as paid */
 }
 
 
-/* Bottom Navigation */
-.bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background-color: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    padding: 0.5rem 0;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    max-width: 450px; /* Match app-container max-width */
-    box-shadow: 0 -2px 10px var(--shadow-color);
-    z-index: 100;
-    border-bottom-left-radius: 15px; /* Match app container */
-    border-bottom-right-radius: 15px; /* Match app container */
-}
-
-.nav-item {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.75rem;
-    font-family: var(--font-body);
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: color 0.2s ease, transform 0.1s ease;
-    flex: 1; /* Distribute space evenly */
-}
-
-.nav-item i {
-    font-size: 1.3rem;
-    margin-bottom: 0.2rem;
-    transition: color 0.2s ease;
-}
-
-.nav-item.active {
-    color: var(--accent-color);
-}
-
-.nav-item:hover {
-    color: var(--accent-color);
-    transform: translateY(-2px);
-}
-
-/* Calculator Styles */
-.calculator-container {
-    background-color: var(--card-bg);
-    border-radius: 15px;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 320px;
-    position: absolute; /* Changed to absolute for easier positioning within app-container */
-    bottom: 80px; /* Position above the bottom nav */
-    left: 50%;
-    transform: translateX(-50%); /* Center horizontally */
-    z-index: 1000;
-    padding: 1rem;
-    box-sizing: border-box; /* Ensure padding is included in width */
-    display: none; /* Hidden by default */
-    border: 1px solid var(--border-color);
-}
-.calculator-display {
-    margin-bottom: 1rem;
-}
-.calculator-display input {
-    width: 100%;
-    padding: 0.8rem;
-    font-size: 2em;
-    text-align: right;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--bg-color);
-    color: var(--heading-color);
-    box-sizing: border-box;
-}
-
-.calculator-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-}
-
-.calc-btn {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    border: none;
-    padding: 1rem;
-    border-radius: 8px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.calc-btn:hover {
-    background-color: var(--border-color);
-    transform: translateY(-1px);
-}
-
-.calc-btn.operator {
-    background-color: var(--accent-color);
-    color: #FFFFFF;
-}
-
-.calc-btn.operator:hover {
-    background-color: #E67A32;
-}
-
-.calc-btn.clear { background-color: #dc3545; color: #fff; } /* Red */
-.calc-btn.clear:hover { background-color: #c82333; }
-.calc-btn.backspace { background-color: #6c757d; color: #fff; } /* Grey */
-.calc-btn.backspace:hover { background-color: #5a6268; }
-
-.calc-btn.equals {
-    background-color: #28a745; /* Green */
-    color: #FFFFFF;
-    grid-column: span 2;
-}
-
-.calc-btn.equals:hover {
-    background-color: #218838;
-}
-
-.calc-btn.zero {
-    grid-column: span 2; /* Make zero button span two columns */
-}
-
-.calc-btn.apply-calc {
-    background-color: #007bff; /* Blue for apply */
-    color: #fff;
-    grid-column: span 2;
-}
-
-.calc-btn.apply-calc:hover {
-    background-color: #0056b3;
-}
-
-
-/* Dark Theme Adjustments */
-body.dark-theme {
-    background-color: var(--bg-color-dark);
-    color: var(--text-color-dark);
-}
-
-.dark-theme .app-container {
-    background-color: var(--card-bg-dark);
-    box-shadow: 0 4px 20px var(--shadow-color-dark);
-}
-
-.dark-theme .app-header {
-    background-color: var(--card-bg-dark);
-    border-bottom-color: var(--border-color-dark);
-    color: var(--heading-color-dark);
-}
-
-.dark-theme .app-title {
-    color: var(--accent-color-dark);
-}
-
-.dark-theme .toggle-theme-btn {
-    color: var(--text-color-dark);
-}
-.dark-theme .toggle-theme-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .section-title, .dark-theme .subsection-title {
-    color: var(--heading-color-dark);
-    border-bottom-color: var(--border-color-dark);
-}
-
-.dark-theme .balance-card {
-    background-color: var(--accent-color-dark);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.dark-theme .action-btn {
-    background-color: var(--card-bg-dark);
-    color: var(--accent-color-dark);
-    border-color: var(--accent-color-dark);
-    box-shadow: 0 2px 5px var(--shadow-color-dark);
-}
-
-.dark-theme .action-btn:hover {
-    background-color: var(--accent-color-dark);
-    color: var(--card-bg-dark); /* text should be card-bg-dark */
-    box-shadow: 0 4px 8px var(--shadow-color-dark);
-}
-
-.dark-theme .transaction-item {
-    background-color: var(--card-bg-dark);
-    box-shadow: 0 2px 5px var(--shadow-color-dark);
-}
-
-.dark-theme .transaction-description,
-.dark-theme .borrowed-lent-item .record-person { /* Added for borrowed/lent */
-    color: var(--heading-color-dark);
-}
-
-.dark-theme .transaction-date, .dark-theme .transaction-category,
-.dark-theme .borrowed-lent-item .record-details { /* Added for borrowed/lent */
-    color: var(--text-color-dark);
-}
-
-.dark-theme .transaction-actions button,
-.dark-theme .record-actions button { /* Added for borrowed/lent */
-    color: var(--text-color-dark);
-}
-
-.dark-theme .transaction-actions button:hover,
-.dark-theme .record-actions button:hover { /* Added for borrowed/lent */
-    color: var(--accent-color-dark);
-}
-
-.dark-theme .transaction-actions .delete-btn:hover,
-.dark-theme .record-actions .delete-btn:hover { /* Added for borrowed/lent */
-    color: var(--expense-color-dark);
-}
-
-.dark-theme .no-transactions, .dark-theme .no-records { /* Added no-records */
-    color: var(--text-color-dark);
-}
-
-.dark-theme .expense-form label {
-    color: var(--heading-color-dark);
-}
-
-.dark-theme .expense-form input,
-.dark-theme .expense-form select,
-.dark-theme .new-category-input,
-.dark-theme .expense-form textarea { /* Added textarea */
-    border-color: var(--border-color-dark);
-    background-color: var(--card-bg-dark);
-    color: var(--text-color-dark);
-}
-
-.dark-theme .expense-form input:focus,
-.dark-theme .expense-form select:focus,
-.dark-theme .new-category-input:focus,
-.dark-theme .expense-form textarea:focus { /* Added textarea */
-    border-color: var(--accent-color-dark);
-    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb-dark), 0.2);
-}
-
-.dark-theme .transaction-type-selector label {
-    border-color: var(--border-color-dark);
-    color: var(--text-color-dark);
-}
-
-.dark-theme .transaction-type-selector input[type="radio"]:checked + label {
-    background-color: var(--accent-color-dark);
-    border-color: var(--accent-color-dark);
-    box-shadow: 0 2px 5px var(--shadow-color-dark);
-}
-
-.dark-theme .transaction-type-selector input[type="radio"] + label:hover {
-    border-color: var(--accent-color-dark);
-}
-
-.dark-theme .primary-btn {
-    background-color: var(--accent-color-dark);
-}
-.dark-theme .primary-btn:hover {
-    background-color: #cc8449;
-}
-
-.dark-theme .secondary-btn {
-    color: var(--accent-color-dark);
-    border-color: var(--accent-color-dark);
-}
-.dark-theme .secondary-btn:hover {
-    background-color: var(--accent-color-dark);
-    color: var(--card-bg-dark); /* text should be card-bg-dark */
-}
-
-.dark-theme .category-item {
-    background-color: var(--card-bg-dark);
-    border-color: var(--border-color-dark);
-    box-shadow: 0 1px 3px var(--shadow-color-dark);
-}
-
-.dark-theme .category-item span {
-    color: var(--heading-color-dark);
-}
-
-.dark-theme .category-item .action-buttons button {
-    color: var(--text-color-dark);
-}
-.dark-theme .category-item .action-buttons button:hover {
-    color: var(--accent-color-dark);
-}
-.dark-theme .category-item .action-buttons .delete-category-btn:hover {
-    color: var(--expense-color-dark);
-}
-
-.dark-theme .transaction-filters input,
-.dark-theme .transaction-filters select {
-    border-color: var(--border-color-dark);
-    background-color: var(--card-bg-dark);
-    color: var(--text-color-dark);
-}
-
-.dark-theme .transaction-filters input:focus,
-.dark-theme .transaction-filters select:focus {
-    border-color: var(--accent-color-dark);
-    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb-dark), 0.2);
-}
-
-.dark-theme .summary-card {
-    background-color: var(--card-bg-dark);
-    box-shadow: 0 4px 10px var(--shadow-color-dark);
-}
-
-.dark-theme .summary-card h3 {
-    color: var(--heading-color-dark);
-}
-.dark-theme .summary-card .amount {
-    color: var(--text-color-dark);
-}
-
-.dark-theme .borrowed-lent-item {
-    background-color: var(--card-bg-dark);
-    box-shadow: 0 2px 5px var(--shadow-color-dark);
-}
-
-.dark-theme .record-paid-status {
-    background-color: var(--border-color-dark);
-    color: var(--text-color-dark);
-}
-.dark-theme .record-paid-status.paid {
-    background-color: var(--income-color-dark);
-}
-
-.dark-theme .bottom-nav {
-    background-color: var(--card-bg-dark);
-    border-top-color: var(--border-color-dark);
-    box-shadow: 0 -2px 10px var(--shadow-color-dark);
-}
-
-.dark-theme .nav-item {
-    color: var(--text-color-dark);
-}
-.dark-theme .nav-item.active {
-    color: var(--accent-color-dark);
-}
-.dark-theme .nav-item:hover {
-    color: var(--accent-color-dark);
-}
-
-/* Dark theme for Calculator */
-.dark-theme .calculator-container {
-    background-color: var(--card-bg-dark);
-    box-shadow: 0 5px 25px var(--shadow-color-dark);
-    border-color: var(--border-color-dark);
-}
-
-.dark-theme .calculator-display input {
-    border-color: var(--border-color-dark);
-    background-color: var(--bg-color-dark);
-    color: var(--heading-color-dark);
-}
-
-.dark-theme .calc-btn {
-    background-color: var(--bg-color-dark);
-    color: var(--text-color-dark);
-}
-
-.dark-theme .calc-btn:hover {
-    background-color: var(--border-color-dark);
-}
-
-.dark-theme .calc-btn.operator {
-    background-color: var(--accent-color-dark);
-}
-.dark-theme .calc-btn.operator:hover {
-    background-color: #cc8449; /* Darker accent */
-}
-
-.dark-theme .calc-btn.clear { background-color: #ff4d60; } /* Darker red */
-.dark-theme .calc-btn.backspace { background-color: #4a5056; }
-.dark-theme .calc-btn.equals { background-color: #3ad75c; }
-.dark-theme .calc-btn.apply-calc { background-color: #36a2eb; }
-
-
-/* --- NEW: Budget Section Styles --- */
+/* Budget View Styles */
 .budget-controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1.5rem;
     gap: 1rem;
+    margin-bottom: 1.5rem;
 }
-
-.budget-controls .icon-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--accent-color);
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-}
-
-.budget-controls .icon-btn:hover {
-    background-color: rgba(var(--accent-color-rgb), 0.1);
-}
-
-.dark-theme .budget-controls .icon-btn {
-    color: var(--accent-color-dark);
-}
-.dark-theme .budget-controls .icon-btn:hover {
-    background-color: rgba(var(--accent-color-rgb-dark), 0.1);
-}
-
-.month-display {
+.budget-controls .month-display {
     font-family: var(--font-heading);
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--heading-color);
+    min-width: 150px;
+    text-align: center;
 }
-.dark-theme .month-display {
-    color: var(--heading-color-dark);
+.budget-controls .icon-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-color);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.budget-controls .icon-btn:hover {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+    border-color: var(--accent-color);
+}
+.dark-theme .budget-controls .icon-btn {
+    border-color: var(--border-color-dark);
+    color: var(--text-color-dark);
+}
+.dark-theme .budget-controls .icon-btn:hover {
+    background-color: var(--accent-color-dark);
+    border-color: var(--accent-color-dark);
 }
 
 
@@ -1091,20 +754,22 @@ body.dark-theme {
     display: flex;
     align-items: flex-end;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
-
+.budget-goal-input-group label {
+    flex-basis: 100%; /* Ensure label is on its own line */
+    margin-bottom: 0.5rem;
+}
 .budget-goal-input-group input {
     flex-grow: 1;
-    /* Reuse existing form input styles */
+    margin-bottom: 0;
 }
-
 .budget-goal-input-group .primary-btn {
     width: auto;
     margin-top: 0;
     white-space: nowrap;
-    padding: 0.6rem 1rem; /* Adjust padding for small button */
-    font-size: 1rem; /* Adjust font size for small button */
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
 }
 
 .budget-summary-card {
@@ -1112,7 +777,7 @@ body.dark-theme {
     padding: 1.5rem;
     border-radius: 12px;
     box-shadow: 0 4px 10px var(--shadow-color);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 .dark-theme .budget-summary-card {
     background-color: var(--card-bg-dark);
@@ -1123,12 +788,10 @@ body.dark-theme {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.75rem;
 }
-
 .budget-summary-card .summary-item:last-child {
-    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .budget-summary-card .summary-label {
@@ -1136,48 +799,31 @@ body.dark-theme {
     color: var(--text-color);
     opacity: 0.9;
 }
-
 .budget-summary-card .summary-value {
     font-family: var(--font-heading);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--heading-color);
 }
-
 .budget-summary-card .summary-value.budget-goal {
     color: var(--accent-color);
 }
-.dark-theme .budget-summary-card .summary-value.budget-goal {
-    color: var(--accent-color-dark);
-}
-
 .budget-summary-card .summary-value.total-expenses {
     color: var(--expense-color);
 }
-.dark-theme .budget-summary-card .summary-value.total-expenses {
-    color: var(--expense-color-dark);
-}
-
 .budget-summary-card .summary-value.remaining-budget.positive {
     color: var(--income-color);
 }
-.dark-theme .budget-summary-card .summary-value.remaining-budget.positive {
-    color: var(--income-color-dark);
-}
-
 .budget-summary-card .summary-value.remaining-budget.negative {
-    color: var(--expense-color); /* Use expense color for negative remaining budget */
-}
-.dark-theme .budget-summary-card .summary-value.remaining-budget.negative {
-    color: var(--expense-color-dark);
+    color: var(--expense-color);
 }
 
 
 .budget-progress-bar-container {
     width: 100%;
+    height: 12px;
     background-color: var(--border-color);
-    border-radius: 10px;
-    height: 15px;
+    border-radius: 6px;
     overflow: hidden;
     margin-bottom: 0.5rem;
 }
@@ -1185,43 +831,29 @@ body.dark-theme {
     background-color: var(--border-color-dark);
 }
 
-
 .budget-progress-bar {
     height: 100%;
-    width: 0%; /* Controlled by JavaScript */
+    width: 0%; /* Controlled by JS */
     background-color: var(--accent-color); /* Default progress color */
-    border-radius: 10px;
+    border-radius: 6px;
     transition: width 0.5s ease-in-out, background-color 0.3s ease;
 }
-.dark-theme .budget-progress-bar {
-    background-color: var(--accent-color-dark);
-}
-
-/* Color for progress bar when over budget */
-.budget-progress-bar.over-budget {
-    background-color: var(--expense-color);
-}
-.dark-theme .budget-progress-bar.over-budget {
-    background-color: var(--expense-color-dark);
-}
-
 
 .progress-label {
     text-align: center;
     font-size: 0.9rem;
     color: var(--text-color);
-    opacity: 0.8;
     margin-bottom: 2rem;
 }
-.dark-theme .progress-label {
-    color: var(--text-color-dark);
+.progress-label.over-budget {
+    color: var(--expense-color); /* Red for over budget */
+    font-weight: 600;
 }
 
 
 .category-summary-list {
     list-style: none;
     padding: 0;
-    margin-bottom: 1rem;
 }
 
 .category-summary-item {
@@ -1262,34 +894,202 @@ body.dark-theme {
     color: var(--expense-color-dark);
 }
 
-.no-categories {
-    text-align: center;
-    color: var(--text-color);
-    opacity: 0.7;
-    padding: 2rem;
-    font-style: italic;
+
+/* Calculator Overlay Styles */
+.calculator-container {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 450px;
+    background-color: var(--card-bg);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
-.dark-theme .no-categories {
+.dark-theme .calculator-container {
+    background-color: var(--card-bg-dark);
+    box-shadow: 0 -4px 20px var(--shadow-color-dark);
+}
+
+.calculator-display input {
+    width: 100%;
+    padding: 1rem;
+    font-size: 2.2rem;
+    text-align: right;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-color);
+    color: var(--heading-color);
+    font-family: var(--font-heading);
+    font-weight: 700;
+}
+.dark-theme .calculator-display input {
+    background-color: var(--bg-color-dark);
+    border-color: var(--border-color-dark);
+    color: var(--heading-color-dark);
+}
+
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.calc-btn {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 1rem;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.dark-theme .calc-btn {
+    background-color: var(--bg-color-dark);
     color: var(--text-color-dark);
 }
 
-/* Responsive Adjustments */
-@media (max-width: 480px) {
-    .app-container {
-        border-radius: 0; /* Full width on smaller screens */
-        box-shadow: none;
-    }
+.calc-btn:hover {
+    background-color: var(--border-color);
+}
+.dark-theme .calc-btn:hover {
+    background-color: var(--border-color-dark);
+}
 
-    .bottom-nav {
-        border-radius: 0;
-    }
+.calc-btn.operator, .calc-btn.equals {
+    background-color: var(--accent-color);
+    color: #FFFFFF;
+}
+.calc-btn.operator:hover, .calc-btn.equals:hover {
+    background-color: #E67A32;
+}
+.dark-theme .calc-btn.operator, .dark-theme .calc-btn.equals {
+    background-color: var(--accent-color-dark);
+}
+.dark-theme .calc-btn.operator:hover, .dark-theme .calc-btn.equals:hover {
+    background-color: #FF8C42;
+}
 
-    .main-content {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
 
-    .transaction-filters button {
-        flex-basis: 100%; /* Stack buttons */
-    }
+.calc-btn.clear {
+    background-color: var(--expense-color);
+    color: #FFFFFF;
+}
+.calc-btn.clear:hover {
+    background-color: #C82333;
+}
+.dark-theme .calc-btn.clear {
+    background-color: var(--expense-color-dark);
+}
+.dark-theme .calc-btn.clear:hover {
+    background-color: #EB4C5A;
+}
+
+.calc-btn.backspace {
+    background-color: #6C757D; /* Grey */
+    color: #FFFFFF;
+}
+.calc-btn.backspace:hover {
+    background-color: #5A6268;
+}
+.dark-theme .calc-btn.backspace {
+    background-color: #555555;
+}
+.dark-theme .calc-btn.backspace:hover {
+    background-color: #6A6A6A;
+}
+
+.calc-btn.zero {
+    grid-column: span 2; /* Make the 0 button wider */
+}
+
+.calc-btn.apply-calc {
+    background-color: var(--income-color); /* Green for apply */
+    color: #FFFFFF;
+}
+.calc-btn.apply-calc:hover {
+    background-color: #218838;
+}
+.dark-theme .calc-btn.apply-calc {
+    background-color: var(--income-color-dark);
+}
+.dark-theme .calc-btn.apply-calc:hover {
+    background-color: #31B14C;
+}
+
+
+/* Backup/Restore Section Specific Styles */
+.backup-restore-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.backup-restore-actions .primary-btn,
+.backup-restore-actions .secondary-btn {
+    margin-top: 0; /* Override default button margin-top */
+}
+.backup-restore-actions .primary-btn i,
+.backup-restore-actions .secondary-btn i {
+    margin-right: 0.5rem;
+}
+
+
+/* Bottom Navigation */
+.bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem 0;
+    background-color: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    position: sticky; /* Make it sticky */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50; /* Above main content but below calculator */
+    box-shadow: 0 -2px 10px var(--shadow-color);
+}
+.dark-theme .bottom-nav {
+    background-color: var(--card-bg-dark);
+    border-top: 1px solid var(--border-color-dark);
+    box-shadow: 0 -2px 10px var(--shadow-color-dark);
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 0.75rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.dark-theme .nav-item {
+    color: var(--text-color-dark);
+}
+
+.nav-item i {
+    font-size: 1.3rem;
+    margin-bottom: 0.2rem;
+}
+
+.nav-item.active {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+.nav-item:hover {
+    color: var(--accent-color);
 }
