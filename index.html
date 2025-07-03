@@ -25,9 +25,14 @@
 
         <main class="main-content">
             <section id="dashboard-view" class="view active">
-                <div class="balance-card">
-                    <p class="balance-label">Current Balance</p>
-                    <p class="balance-amount">₹ <span>0.00</span></p>
+                <div class="monthly-expense-card">
+                    <p class="monthly-expense-label">Monthly Expenses</p>
+                    <p class="monthly-expense-amount">₹ <span id="display-monthly-expenses">0.00</span></p>
+                </div>
+
+                <div class="overall-summary-card">
+                    <p class="overall-label">Overall Total Transactions</p>
+                    <p class="overall-amount">₹ <span id="overall-total-amount">0.00</span></p>
                 </div>
 
                 <h2 class="section-title">Recent Transactions</h2>
@@ -115,6 +120,10 @@
                         <h3>Money You Owe</h3>
                         <p class="amount">₹ <span id="total-borrowed">0.00</span></p>
                     </div>
+                    <div class="summary-card balance-debt">
+                        <h3>Current Overall Balance</h3>
+                        <p class="amount">₹ <span id="display-overall-balance-in-debt">0.00</span></p>
+                    </div>
                 </div>
 
                 <button class="primary-btn" id="add-borrow-lent-btn">Add Record</button>
@@ -180,12 +189,12 @@
 
                 <div class="budget-summary-card">
                     <div class="summary-item">
-                        <p class="summary-label">Budget Goal</p>
-                        <p class="summary-value budget-goal">₹ <span id="display-budget-goal">0.00</span></p>
-                    </div>
-                    <div class="summary-item">
                         <p class="summary-label">Total Expenses</p>
                         <p class="summary-value total-expenses">₹ <span id="display-total-expenses">0.00</span></p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">Budget Goal</p>
+                        <p class="summary-value budget-goal">₹ <span id="display-budget-goal">0.00</span></p>
                     </div>
                     <div class="summary-item">
                         <p class="summary-label">Remaining Budget</p>
@@ -235,7 +244,7 @@
                 <button class="calc-btn equals" data-action="equals">=</button>
 
                 <button class="calc-btn number zero">0</button>
-                <button class="calc-btn number decimal">.</button>
+                <button class="calc-btn decimal">.</button>
                 <button class="calc-btn apply-calc" data-action="apply">Apply</button>
             </div>
         </div>
@@ -276,19 +285,20 @@
             const backToDashboardBtns = document.querySelectorAll('.back-to-dashboard-btn');
 
             // Dashboard elements
-            const balanceAmountSpan = document.querySelector('.balance-amount span');
+            const displayMonthlyExpensesSpan = document.getElementById('display-monthly-expenses'); // NEW ID
+            const overallTotalAmountSpan = document.getElementById('overall-total-amount');
             const recentTransactionList = document.getElementById('recent-transaction-list');
             const noRecentTransactionsMessage = recentTransactionList.querySelector('.no-transactions');
 
             // Add Transaction elements (formerly Add Expense)
-            const transactionForm = document.getElementById('expense-form'); // Retain ID for now
-            const transactionIdInput = document.getElementById('expense-id'); // For future edit functionality
-            const transactionTypeRadios = document.querySelectorAll('input[name="transaction-type"]'); // NEW
+            const transactionForm = document.getElementById('expense-form');
+            const transactionIdInput = document.getElementById('expense-id');
+            const transactionTypeRadios = document.querySelectorAll('input[name="transaction-type"]');
             const transactionAmountInput = document.getElementById('expense-amount');
             const transactionDescriptionInput = document.getElementById('expense-description');
             const transactionDateInput = document.getElementById('expense-date');
             const transactionCategorySelect = document.getElementById('expense-category');
-            const saveTransactionBtn = document.getElementById('save-expense-btn'); // Retain ID for now
+            const saveTransactionBtn = document.getElementById('save-expense-btn');
 
             // Categories elements
             const categoryListUl = document.getElementById('category-list');
@@ -301,13 +311,14 @@
             const filterStartDateInput = document.getElementById('filter-start-date');
             const filterEndDateInput = document.getElementById('filter-end-date');
             const filterCategorySelect = document.getElementById('filter-category');
-            const filterTypeSelect = document.getElementById('filter-type'); // NEW filter for type
+            const filterTypeSelect = document.getElementById('filter-type');
             const applyFilterBtn = document.getElementById('apply-filter-btn');
             const clearFilterBtn = document.getElementById('clear-filter-btn');
 
             // Borrowed/Lent elements (NEW SECTION)
             const totalLentSpan = document.getElementById('total-lent');
             const totalBorrowedSpan = document.getElementById('total-borrowed');
+            const displayOverallBalanceInDebtSpan = document.getElementById('display-overall-balance-in-debt'); // NEW ID for balance in debt section
             const addBorrowLentBtn = document.getElementById('add-borrow-lent-btn');
             const borrowedLentListUl = document.getElementById('borrowed-lent-list');
             const noBorrowedLentRecordsMessage = borrowedLentListUl.querySelector('.no-records');
@@ -336,126 +347,192 @@
             const budgetProgressBar = document.getElementById('budget-progress-bar');
             const budgetProgressLabel = document.getElementById('budget-progress-label');
             const budgetCategoryExpensesList = document.getElementById('budget-category-expenses-list');
-            const noBudgetCategoryExpensesMessage = budgetCategoryExpensesList.querySelector('.no-categories'); // Renamed from no-transactions to no-categories to be specific for budget
-
+            const noBudgetCategoryExpensesMessage = budgetCategoryExpensesList.querySelector('.no-categories');
 
             // Theme toggle
             const themeToggleBtn = document.getElementById('themeToggle');
 
             // --- Calculator Elements ---
-            // NEW: Calculator toggle button in the header
             const calculatorToggleBtn = document.getElementById('calculatorToggle');
             const calculatorContainer = document.getElementById('calculator');
             const calcOutput = document.getElementById('calc-output');
-            const calcButtons = calculatorContainer.querySelector('.calculator-buttons');
-
-            let currentInput = '0';
+            const calcButtons = document.querySelector('.calculator-buttons');
             let firstOperand = null;
             let operator = null;
             let waitingForSecondOperand = false;
 
-            // --- Data Storage (Using localStorage) ---
-            // Transaction objects now include a 'type' property ('expense' or 'income')
-            let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-            let categories = JSON.parse(localStorage.getItem('categories')) || ['Food', 'Transport', 'Study', 'Entertainment', 'Rent', 'Utilities', 'Shopping', 'Others'];
-            let borrowedLentRecords = JSON.parse(localStorage.getItem('borrowedLentRecords')) || []; // NEW: for borrowed/lent money
-            let currentTheme = localStorage.getItem('theme') || 'light'; // Default theme
-            // NEW: Budget related data
-            // Store budgets as an object where key is "YYYY-MM" (e.g., "2025-07") and value is the goal amount
-            let monthlyBudgets = JSON.parse(localStorage.getItem('monthlyBudgets')) || {};
-            let currentBudgetMonth = new Date(); // Tracks the month currently displayed in the budget section
+            // --- Local Storage Keys ---
+            const LS_TRANSACTIONS = 'expenseTracker.transactions';
+            const LS_CATEGORIES = 'expenseTracker.categories';
+            const LS_BORROWED_LENT = 'expenseTracker.borrowedLent';
+            const LS_MONTHLY_BUDGET = 'expenseTracker.monthlyBudget';
+            const LS_THEME = 'expenseTracker.theme';
 
-            // --- Global Filtering State for the Filtered Transactions Section ---
-            let currentFilter = {
-                startDate: null,
-                endDate: null,
-                category: 'all',
-                type: 'all' // NEW: filter by type
-            };
+            // --- Data Structures ---
+            let transactions = [];
+            let categories = new Set(['Food', 'Transport', 'Entertainment', 'Utilities', 'Rent', 'Salary', 'Freelance']);
+            let borrowedLentRecords = [];
+            let monthlyBudgetGoals = {};
 
-            // --- Initial Setup Functions ---
-
-            function initializeApp() {
-                applyTheme(currentTheme);
-                populateCategorySelects(); // Populate category dropdowns for Add Transaction and Filter
-                updateBalance();
-                displayRecentTransactions(); // Display recent transactions on dashboard
-                // Set today's date for add transaction form
-                transactionDateInput.valueAsDate = new Date();
-                // Set default filter dates for the filtered section (e.g., current month)
-                setDefaultFilterDates();
-                // Initialize borrowed/lent section
-                updateBorrowedLentSummary();
-                displayBorrowedLentRecords();
-                borrowLentDateInput.valueAsDate = new Date(); // Default date for borrowed/lent form
-                calculatorContainer.style.display = 'none'; // Ensure calculator is hidden on load
-                resetCalculator(); // Reset calculator state
-                initializeBudgetSection(); // NEW: Initialize budget section
+            // --- Helper Functions ---
+            function generateUniqueId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
             }
 
-            function applyTheme(theme) {
-                if (theme === 'dark') {
-                    document.body.classList.add('dark-theme');
-                    themeToggleBtn.classList.remove('fa-sun');
-                    themeToggleBtn.classList.add('fa-moon');
-                } else {
-                    document.body.classList.remove('dark-theme');
-                    themeToggleBtn.classList.remove('fa-moon');
-                    themeToggleBtn.classList.add('fa-sun');
+            // Function to save data to local storage
+            function saveTransactions() {
+                localStorage.setItem(LS_TRANSACTIONS, JSON.stringify(transactions));
+            }
+
+            function saveCategories() {
+                localStorage.setItem(LS_CATEGORIES, JSON.stringify(Array.from(categories)));
+            }
+
+            function saveBorrowedLentRecords() {
+                localStorage.setItem(LS_BORROWED_LENT, JSON.stringify(borrowedLentRecords));
+            }
+
+            function saveMonthlyBudgetGoals() {
+                localStorage.setItem(LS_MONTHLY_BUDGET, JSON.stringify(monthlyBudgetGoals));
+            }
+
+            // Function to load data from local storage
+            function loadTransactions() {
+                const storedTransactions = localStorage.getItem(LS_TRANSACTIONS);
+                if (storedTransactions) {
+                    transactions = JSON.parse(storedTransactions);
                 }
-                currentTheme = theme;
-                localStorage.setItem('theme', theme);
             }
 
-            function switchView(viewId) {
-                console.log('Switching to view:', viewId); // Added for debugging
-                views.forEach(view => {
-                    view.classList.remove('active');
-                });
-                document.getElementById(viewId).classList.add('active');
+            function loadCategories() {
+                const storedCategories = localStorage.getItem(LS_CATEGORIES);
+                if (storedCategories) {
+                    categories = new Set(JSON.parse(storedCategories));
+                }
+            }
 
-                navItems.forEach(item => {
-                    if (item.dataset.view === viewId) {
-                        item.classList.add('active');
+            function loadBorrowedLentRecords() {
+                const storedRecords = localStorage.getItem(LS_BORROWED_LENT);
+                if (storedRecords) {
+                    borrowedLentRecords = JSON.parse(storedRecords);
+                }
+            }
+
+            function loadMonthlyBudgetGoals() {
+                const storedGoals = localStorage.getItem(LS_MONTHLY_BUDGET);
+                if (storedGoals) {
+                    monthlyBudgetGoals = JSON.parse(storedGoals);
+                }
+            }
+
+            // --- UI Rendering Functions ---
+
+            function updateDashboard() {
+                renderRecentTransactions();
+                updateMonthlyExpensesDisplay(); // NEW: Call function to update monthly expenses
+                updateOverallTotalTransactions();
+            }
+
+            function calculateTotalBalance() {
+                let balance = 0;
+                transactions.forEach(t => {
+                    if (t.type === 'income') {
+                        balance += t.amount;
                     } else {
-                        item.classList.remove('active');
+                        balance -= t.amount;
                     }
                 });
+                return balance;
+            }
 
-                // Specific actions on view switch
-                if (viewId === 'dashboard-view') {
-                    updateBalance();
-                    displayRecentTransactions(); // Refresh recent transactions
-                } else if (viewId === 'categories-view') {
-                    displayCategoriesList(); // Refresh list
-                    populateCategorySelects(); // Ensure filter categories are updated after category changes
-                } else if (viewId === 'add-expense-view') {
-                    resetTransactionForm(); // Clear form
-                    populateCategorySelects(); // Refresh categories
-                    // Calculator state is now independent of this view
-                } else if (viewId === 'filtered-transactions-view') {
-                    populateCategorySelects(); // Ensure filter categories are updated
-                    displayFilteredTransactions(); // Initial display of filtered transactions
-                } else if (viewId === 'borrowed-lent-view') { // NEW
-                    updateBorrowedLentSummary();
-                    displayBorrowedLentRecords();
-                } else if (viewId === 'add-borrow-lent-view') { // NEW
-                    resetBorrowLentForm();
-                } else if (viewId === 'budget-view') { // NEW: Budget View Activation
-                    updateBudgetDisplay();
+            function updateMonthlyExpensesDisplay() {
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                let totalMonthlyExpenses = 0;
+                transactions.forEach(t => {
+                    const transactionDate = new Date(t.date);
+                    if (t.type === 'expense' &&
+                        transactionDate.getMonth() === currentMonth &&
+                        transactionDate.getFullYear() === currentYear) {
+                        totalMonthlyExpenses += t.amount;
+                    }
+                });
+                displayMonthlyExpensesSpan.textContent = totalMonthlyExpenses.toFixed(2);
+            }
+
+            function renderRecentTransactions() {
+                recentTransactionList.innerHTML = '';
+
+                if (transactions.length === 0) {
+                    recentTransactionList.appendChild(noRecentTransactionsMessage);
+                    return;
                 }
+
+                const recentFive = transactions.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+                recentFive.forEach(transaction => {
+                    const listItem = createTransactionListItem(transaction);
+                    recentTransactionList.appendChild(listItem);
+                });
             }
 
-            function updateBalance() {
-                const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-                const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-                balanceAmountSpan.textContent = (totalIncome - totalExpenses).toFixed(2);
+            function createTransactionListItem(transaction) {
+                const listItem = document.createElement('li');
+                listItem.className = `transaction-item ${transaction.type}`;
+                listItem.dataset.id = transaction.id;
+
+                const iconClass = transaction.type === 'expense' ? 'fa-minus-circle' : 'fa-plus-circle';
+                const sign = transaction.type === 'expense' ? '-' : '+';
+
+                listItem.innerHTML = `
+                    <i class="fas ${iconClass} transaction-icon"></i>
+                    <div class="transaction-info">
+                        <p class="transaction-description">${transaction.description}</p>
+                        <p class="transaction-date">${formatDate(transaction.date)}</p>
+                        <p class="transaction-category">${transaction.category}</p>
+                    </div>
+                    <p class="transaction-amount">${sign} ₹${transaction.amount.toFixed(2)}</p>
+                    <div class="transaction-actions">
+                        <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `;
+
+                listItem.querySelector('.edit-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editTransaction(transaction.id);
+                });
+                listItem.querySelector('.delete-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTransaction(transaction.id);
+                });
+
+                return listItem;
             }
 
-            // --- Transaction Functions (now handles Income and Expense) ---
+            function renderCategories() {
+                categoryListUl.innerHTML = '';
+                if (categories.size === 0) {
+                    categoryListUl.innerHTML = '<li class="no-categories">No categories yet. Add one to get started.</li>';
+                    return;
+                }
+                categories.forEach(category => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'category-item';
+                    listItem.innerHTML = `
+                        <span>${category}</span>
+                        <button class="delete-category-btn" data-category="${category}"><i class="fas fa-trash-alt"></i></button>
+                    `;
+                    listItem.querySelector('.delete-category-btn').addEventListener('click', () => deleteCategory(category));
+                    categoryListUl.appendChild(listItem);
+                });
+                populateCategorySelects();
+            }
 
             function populateCategorySelects() {
-                // Populate Add Transaction form category select
+                // Populate Add Transaction category select
                 transactionCategorySelect.innerHTML = '<option value="">Select a category</option>';
                 categories.forEach(category => {
                     const option = document.createElement('option');
@@ -464,7 +541,7 @@
                     transactionCategorySelect.appendChild(option);
                 });
 
-                // Populate Filtered Transactions category select
+                // Populate Filter Transaction category select
                 filterCategorySelect.innerHTML = '<option value="all">All Categories</option>';
                 categories.forEach(category => {
                     const option = document.createElement('option');
@@ -472,379 +549,252 @@
                     option.textContent = category;
                     filterCategorySelect.appendChild(option);
                 });
-                // Restore previous filter selection if it exists
-                filterCategorySelect.value = currentFilter.category;
             }
 
-            // Function to display transactions (used by both recent and filtered lists)
-            function renderTransactionList(targetListElement, transactionsToDisplay, noTransactionsMsgElement) {
-                targetListElement.innerHTML = ''; // Clear existing list
+            function renderFilteredTransactions() {
+                filteredTransactionList.innerHTML = '';
+                const startDate = filterStartDateInput.value ? new Date(filterStartDateInput.value) : null;
+                const endDate = filterEndDateInput.value ? new Date(filterEndDateInput.value) : null;
+                const category = filterCategorySelect.value;
+                const type = filterTypeSelect.value;
 
-                // Show/hide "No transactions" message
-                if (transactionsToDisplay.length === 0) {
-                    if (noTransactionsMsgElement) {
-                        noTransactionsMsgElement.style.display = 'block';
-                    }
+                const filtered = transactions.filter(t => {
+                    const transactionDate = new Date(t.date);
+                    const matchesDate = (!startDate || transactionDate >= startDate) && (!endDate || transactionDate <= endDate);
+                    const matchesCategory = (category === 'all' || t.category === category);
+                    const matchesType = (type === 'all' || t.type === type);
+                    return matchesDate && matchesCategory && matchesType;
+                }).sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
+
+                if (filtered.length === 0) {
+                    filteredTransactionList.appendChild(noFilteredTransactionsMessage);
                     return;
-                } else {
-                    if (noTransactionsMsgElement) {
-                        noTransactionsMsgElement.style.display = 'none';
-                    }
                 }
 
-                // Sort by date descending for recent/filtered lists
-                const sortedTransactions = [...transactionsToDisplay].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                sortedTransactions.forEach(transaction => {
-                    const li = document.createElement('li');
-                    li.className = `transaction-item ${transaction.type}`; // Add 'expense' or 'income' class
-                    li.dataset.id = transaction.id; // Store ID for deletion/editing
-
-                    const transactionDate = new Date(transaction.date);
-                    const formattedDate = transactionDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-
-                    // Determine icon based on type
-                    const iconClass = transaction.type === 'expense' ? 'fa-minus-circle' : 'fa-plus-circle';
-
-                    li.innerHTML = `
-                        <div class="transaction-icon"><i class="fas ${iconClass}"></i></div>
-                        <div class="transaction-info">
-                            <div class="transaction-description">${transaction.description}</div>
-                            <div class="transaction-details">
-                                <span class="transaction-date">${formattedDate}</span>
-                                <span class="transaction-category"> - ${transaction.category}</span>
-                            </div>
-                        </div>
-                        <div class="transaction-amount">₹ ${parseFloat(transaction.amount).toFixed(2)}</div>
-                        <div class="transaction-actions">
-                            <button class="edit-transaction-btn"><i class="fas fa-edit"></i></button>
-                            <button class="delete-transaction-btn"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    `;
-                    targetListElement.appendChild(li);
+                filtered.forEach(transaction => {
+                    const listItem = createTransactionListItem(transaction);
+                    filteredTransactionList.appendChild(listItem);
                 });
             }
 
-            function displayRecentTransactions() {
-                // Display only the last 5 transactions on the dashboard
-                const recentTrans = [...transactions]
-                                        .sort((a, b) => new Date(b.date) - new Date(a.date))
-                                        .slice(0, 5);
-                renderTransactionList(recentTransactionList, recentTrans, noRecentTransactionsMessage);
-                // Ensure the no transactions message is handled correctly if no recent transactions
-                if (recentTrans.length === 0 && !recentTransactionList.contains(noRecentTransactionsMessage)) {
-                    recentTransactionList.appendChild(noRecentTransactionsMessage);
-                    noRecentTransactionsMessage.style.display = 'block';
+            function renderBorrowedLentRecords() {
+                borrowedLentListUl.innerHTML = '';
+
+                if (borrowedLentRecords.length === 0) {
+                    borrowedLentListUl.appendChild(noBorrowedLentRecordsMessage);
+                    return;
+                }
+
+                borrowedLentRecords.forEach(record => {
+                    const listItem = document.createElement('li');
+                    listItem.className = `borrowed-lent-item ${record.type} ${record.paid ? 'paid' : ''}`;
+                    listItem.dataset.id = record.id;
+                    const iconClass = record.type === 'lent' ? 'fa-hand-holding-dollar' : 'fa-money-bill-transfer'; // Icons can be refined
+                    const statusText = record.paid ? '(Paid/Returned)' : '';
+
+                    listItem.innerHTML = `
+                        <i class="fas ${iconClass} record-icon"></i>
+                        <div class="record-info">
+                            <p class="record-person">${record.person} ${statusText}</p>
+                            <p class="record-date">${formatDate(record.date)}</p>
+                            <p class="record-notes">${record.notes || 'No notes'}</p>
+                        </div>
+                        <p class="record-amount">₹${record.amount.toFixed(2)}</p>
+                        <div class="record-actions">
+                            <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `;
+
+                    listItem.querySelector('.edit-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        editBorrowedLentRecord(record.id);
+                    });
+                    listItem.querySelector('.delete-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteBorrowedLentRecord(record.id);
+                    });
+                    borrowedLentListUl.appendChild(listItem);
+                });
+                updateBorrowedLentSummary();
+                updateOverallBalanceInDebtSection(); // NEW: Call to update balance in debt section
+            }
+
+            function updateBorrowedLentSummary() {
+                let totalLent = 0;
+                let totalBorrowed = 0;
+                borrowedLentRecords.forEach(record => {
+                    if (!record.paid) { // Only count unpaid/unreturned
+                        if (record.type === 'lent') {
+                            totalLent += record.amount;
+                        } else {
+                            totalBorrowed += record.amount;
+                        }
+                    }
+                });
+                totalLentSpan.textContent = totalLent.toFixed(2);
+                totalBorrowedSpan.textContent = totalBorrowed.toFixed(2);
+            }
+
+            function updateOverallBalanceInDebtSection() {
+                const totalBalance = calculateTotalBalance(); // Re-use existing balance calculation
+                displayOverallBalanceInDebtSpan.textContent = totalBalance.toFixed(2);
+                // Optional: Add class for positive/negative styling if desired
+                if (totalBalance < 0) {
+                    displayOverallBalanceInDebtSpan.classList.remove('positive');
+                    displayOverallBalanceInDebtSpan.classList.add('negative');
+                } else {
+                    displayOverallBalanceInDebtSpan.classList.remove('negative');
+                    displayOverallBalanceInDebtSpan.classList.add('positive');
                 }
             }
 
 
-            function saveTransaction(e) {
-                e.preventDefault();
+            // --- NEW: Budget Functions ---
+            let currentBudgetDate = new Date(); // To track the month being viewed in budget
 
-                const id = transactionIdInput.value ? parseInt(transactionIdInput.value) : null;
-                const type = document.querySelector('input[name="transaction-type"]:checked').value; // Get selected type
+            function updateBudgetView() {
+                const monthYearKey = getMonthYearKey(currentBudgetDate); // e.g., "2025-07"
+                currentBudgetMonthDisplay.textContent = formatMonthYear(currentBudgetDate);
+
+                // Set budget goal input
+                const savedGoal = monthlyBudgetGoals[monthYearKey] || '';
+                monthlyBudgetGoalInput.value = savedGoal;
+                displayBudgetGoal.textContent = parseFloat(savedGoal || 0).toFixed(2); // Display current month's goal
+
+                updateBudgetSummary();
+                renderBudgetCategoryExpenses();
+            }
+
+            function updateBudgetSummary() {
+                const monthYearKey = getMonthYearKey(currentBudgetDate);
+                const budgetGoal = parseFloat(monthlyBudgetGoals[monthYearKey] || 0);
+                let totalExpensesForMonth = 0;
+
+                transactions.forEach(t => {
+                    if (t.type === 'expense' && getMonthYearKey(new Date(t.date)) === monthYearKey) {
+                        totalExpensesForMonth += t.amount;
+                    }
+                });
+
+                displayTotalExpenses.textContent = totalExpensesForMonth.toFixed(2);
+                const remainingBudget = budgetGoal - totalExpensesForMonth;
+                displayRemainingBudget.textContent = remainingBudget.toFixed(2);
+
+                // Update remaining budget color
+                if (remainingBudget < 0) {
+                    displayRemainingBudget.classList.remove('positive');
+                    displayRemainingBudget.classList.add('negative');
+                } else {
+                    displayRemainingBudget.classList.remove('negative');
+                    displayRemainingBudget.classList.add('positive');
+                }
+
+                // Update progress bar
+                let progressPercentage = 0;
+                if (budgetGoal > 0) {
+                    progressPercentage = (totalExpensesForMonth / budgetGoal) * 100;
+                }
+                progressPercentage = Math.min(progressPercentage, 100); // Cap at 100% for display
+
+                budgetProgressBar.style.width = `${progressPercentage}%`;
+                budgetProgressLabel.textContent = `${progressPercentage.toFixed(0)}% of budget used`;
+
+                // Change progress bar color based on usage
+                if (progressPercentage >= 100) {
+                    budgetProgressBar.className = 'budget-progress-bar high-usage';
+                } else if (progressPercentage >= 75) {
+                    budgetProgressBar.className = 'budget-progress-bar medium-usage';
+                } else {
+                    budgetProgressBar.className = 'budget-progress-bar low-usage';
+                }
+            }
+
+            function renderBudgetCategoryExpenses() {
+                budgetCategoryExpensesList.innerHTML = '';
+                const monthYearKey = getMonthYearKey(currentBudgetDate);
+                const categoryExpenses = {};
+
+                transactions.forEach(t => {
+                    if (t.type === 'expense' && getMonthYearKey(new Date(t.date)) === monthYearKey) {
+                        categoryExpenses[t.category] = (categoryExpenses[t.category] || 0) + t.amount;
+                    }
+                });
+
+                const sortedCategories = Object.entries(categoryExpenses).sort(([, amountA], [, amountB]) => amountB - amountA);
+
+                if (sortedCategories.length === 0) {
+                    budgetCategoryExpensesList.appendChild(noBudgetCategoryExpensesMessage);
+                    return;
+                }
+
+                sortedCategories.forEach(([category, amount]) => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'category-summary-item';
+                    listItem.innerHTML = `
+                        <span class="category-summary-name">${category}</span>
+                        <span class="category-summary-amount">₹${amount.toFixed(2)}</span>
+                    `;
+                    budgetCategoryExpensesList.appendChild(listItem);
+                });
+            }
+
+            // --- Form Handlers ---
+
+            transactionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = transactionIdInput.value || generateUniqueId();
+                const type = document.querySelector('input[name="transaction-type"]:checked').value;
                 const amount = parseFloat(transactionAmountInput.value);
                 const description = transactionDescriptionInput.value.trim();
                 const date = transactionDateInput.value;
                 const category = transactionCategorySelect.value;
 
-                if (isNaN(amount) || amount <= 0 || description === '' || date === '' || category === '') {
-                    alert('Please fill in all fields with valid data.');
+                if (isNaN(amount) || amount <= 0 || !description || !date || !category) {
+                    alert('Please fill in all transaction fields correctly.');
                     return;
                 }
 
-                if (id) { // Editing existing transaction
-                    transactions = transactions.map(t =>
-                        t.id === id
-                            ? { ...t, type, amount, description, date, category } // Update type too
-                            : t
-                    );
-                    alert('Transaction updated successfully!');
-                } else { // Adding new transaction
-                    const newTransaction = {
-                        id: Date.now(), // Simple unique ID
-                        type: type, // Store the type
-                        amount: amount,
-                        description: description,
-                        date: date,
-                        category: category
-                    };
-                    transactions.unshift(newTransaction); // Add to the beginning to show as recent
-                    alert('Transaction added successfully!');
+                const existingIndex = transactions.findIndex(t => t.id === id);
+                if (existingIndex > -1) {
+                    // Update existing transaction
+                    transactions[existingIndex] = { id, type, amount, description, date, category };
+                } else {
+                    // Add new transaction
+                    transactions.push({ id, type, amount, description, date, category });
                 }
 
-                localStorage.setItem('transactions', JSON.stringify(transactions));
+                saveTransactions();
                 resetTransactionForm();
-                switchView('dashboard-view'); // Go back to dashboard
-                updateBudgetDisplay(); // Update budget display if needed
-            }
+                updateDashboard();
+                updateBudgetView(); // Update budget view as well
+                showView('dashboard-view');
+            });
 
-            function deleteTransaction(id) {
-                if (confirm('Are you sure you want to delete this transaction?')) {
-                    transactions = transactions.filter(t => t.id !== id);
-                    localStorage.setItem('transactions', JSON.stringify(transactions));
-                    updateBalance();
-                    displayRecentTransactions(); // Refresh recent list
-                    if (document.getElementById('filtered-transactions-view').classList.contains('active')) {
-                        displayFilteredTransactions(); // Refresh filtered list if active
-                    }
-                    if (document.getElementById('budget-view').classList.contains('active')) { // NEW
-                        updateBudgetDisplay();
-                    }
+            addNewCategoryBtn.addEventListener('click', () => {
+                const newCategoryName = newCategoryInput.value.trim();
+                if (newCategoryName && !categories.has(newCategoryName)) {
+                    categories.add(newCategoryName);
+                    saveCategories();
+                    renderCategories();
+                    newCategoryInput.value = '';
+                } else if (newCategoryName) {
+                    alert('Category already exists!');
                 }
-            }
+            });
 
-            // Function to handle editing, works for both recent and filtered lists
-            function editTransaction(id) {
-                const transactionToEdit = transactions.find(t => t.id === id);
-                if (transactionToEdit) {
-                    transactionIdInput.value = transactionToEdit.id;
-                    // Set transaction type radio button
-                    document.getElementById(`type-${transactionToEdit.type}`).checked = true;
-                    transactionAmountInput.value = transactionToEdit.amount;
-                    transactionDescriptionInput.value = transactionToEdit.description;
-                    transactionDateInput.value = transactionToEdit.date;
-                    transactionCategorySelect.value = transactionToEdit.category;
-
-                    document.getElementById('add-expense-view').querySelector('.section-title').textContent = 'Edit Transaction';
-                    saveTransactionBtn.textContent = 'Update Transaction';
-                    switchView('add-expense-view');
-                }
-            }
-
-            function resetTransactionForm() {
-                transactionForm.reset();
-                transactionIdInput.value = '';
-                document.getElementById('add-expense-view').querySelector('.section-title').textContent = 'Add New Transaction';
-                saveTransactionBtn.textContent = 'Add Transaction';
-                transactionDateInput.valueAsDate = new Date(); // Reset date to today
-                document.getElementById('type-expense').checked = true; // Default to expense
-                populateCategorySelects(); // Repopulate categories just in case
-            }
-
-            // --- Transaction Filtering for dedicated section ---
-            function setDefaultFilterDates() {
-                const today = new Date();
-                const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-                filterStartDateInput.valueAsDate = firstDayOfMonth;
-                filterEndDateInput.valueAsDate = lastDayOfMonth;
-
-                // Initialize currentFilter with these defaults
-                currentFilter.startDate = firstDayOfMonth.toISOString().split('T')[0];
-                currentFilter.endDate = lastDayOfMonth.toISOString().split('T')[0];
-                filterTypeSelect.value = 'all'; // Default filter type
-            }
-
-            function applyFiltersAndDisplay() {
-                currentFilter.startDate = filterStartDateInput.value;
-                currentFilter.endDate = filterEndDateInput.value;
-                currentFilter.category = filterCategorySelect.value;
-                currentFilter.type = filterTypeSelect.value; // Get filter type
-                displayFilteredTransactions();
-            }
-
-            function clearAllFilters() {
+            applyFilterBtn.addEventListener('click', renderFilteredTransactions);
+            clearFilterBtn.addEventListener('click', () => {
                 filterStartDateInput.value = '';
                 filterEndDateInput.value = '';
                 filterCategorySelect.value = 'all';
-                filterTypeSelect.value = 'all'; // Clear filter type
+                filterTypeSelect.value = 'all';
+                renderFilteredTransactions(); // Re-render with cleared filters
+            });
 
-                currentFilter.startDate = null;
-                currentFilter.endDate = null;
-                currentFilter.category = 'all';
-                currentFilter.type = 'all'; // Clear filter type
-                displayFilteredTransactions();
-            }
-
-            function displayFilteredTransactions() {
-                let filteredTransactions = [...transactions];
-
-                // Filter by Date Range
-                const startDate = currentFilter.startDate;
-                const endDate = currentFilter.endDate;
-                if (startDate) {
-                    const startOfDay = new Date(startDate);
-                    startOfDay.setHours(0, 0, 0, 0);
-                    filteredTransactions = filteredTransactions.filter(t => new Date(t.date) >= startOfDay);
-                }
-                if (endDate) {
-                    const endOfDay = new Date(endDate);
-                    endOfDay.setHours(23, 59, 59, 999);
-                    filteredTransactions = filteredTransactions.filter(t => new Date(t.date) <= endOfDay);
-                }
-
-                // Filter by Category
-                if (currentFilter.category !== 'all') {
-                    filteredTransactions = filteredTransactions.filter(t => t.category === currentFilter.category);
-                }
-
-                // Filter by Type (NEW)
-                if (currentFilter.type !== 'all') {
-                    filteredTransactions = filteredTransactions.filter(t => t.type === currentFilter.type);
-                }
-
-                renderTransactionList(filteredTransactionList, filteredTransactions, noFilteredTransactionsMessage);
-                // Ensure the no transactions message is handled correctly if no filtered transactions
-                if (filteredTransactions.length === 0 && !filteredTransactionList.contains(noFilteredTransactionsMessage)) {
-                    filteredTransactionList.appendChild(noFilteredTransactionsMessage);
-                    noFilteredTransactionsMessage.style.display = 'block';
-                }
-            }
-
-
-            // --- Category Functions ---
-            function displayCategoriesList() {
-                categoryListUl.innerHTML = '';
-                if (categories.length === 0) {
-                    const noCategoriesLi = document.createElement('li');
-                    noCategoriesLi.textContent = 'No categories added yet.';
-                    categoryListUl.appendChild(noCategoriesLi);
-                    return;
-                }
-                categories.forEach(category => {
-                    const li = document.createElement('li');
-                    li.className = 'category-item';
-                    li.dataset.categoryName = category; // Store name for operations
-                    li.innerHTML = `
-                        <span>${category}</span>
-                        <div class="action-buttons">
-                            <button class="edit-category-btn"><i class="fas fa-edit"></i></button>
-                            <button class="delete-category-btn"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    `;
-                    categoryListUl.appendChild(li);
-                });
-            }
-
-            function addCategory() {
-                const newCatName = newCategoryInput.value.trim();
-                if (newCatName && !categories.includes(newCatName)) {
-                    categories.push(newCatName);
-                    localStorage.setItem('categories', JSON.stringify(categories));
-                    newCategoryInput.value = '';
-                    displayCategoriesList();
-                    populateCategorySelects(); // Update all relevant selects
-                    alert(`Category "${newCatName}" added!`);
-                } else if (newCatName && categories.includes(newCatName)) {
-                    alert('Category already exists!');
-                }
-            }
-
-            function deleteCategory(categoryName) {
-                if (confirm(`Are you sure you want to delete the category "${categoryName}"? Existing transactions assigned to it will appear without a valid category.`)) {
-                    categories = categories.filter(cat => cat !== categoryName);
-                    localStorage.setItem('categories', JSON.stringify(categories));
-                    displayCategoriesList();
-                    populateCategorySelects(); // Update all relevant selects
-                    displayRecentTransactions(); // Refresh dashboard in case a category was used
-                    if (document.getElementById('filtered-transactions-view').classList.contains('active')) {
-                        displayFilteredTransactions(); // Refresh filtered list if active
-                    }
-                    if (document.getElementById('budget-view').classList.contains('active')) { // NEW
-                        updateBudgetDisplay();
-                    }
-                }
-            }
-
-            function editCategory(oldCategoryName) {
-                const newCategoryName = prompt(`Edit category "${oldCategoryName}":`, oldCategoryName);
-                if (newCategoryName && newCategoryName.trim() !== '' && newCategoryName.trim() !== oldCategoryName) {
-                    const trimmedNewName = newCategoryName.trim();
-                    if (categories.includes(trimmedNewName)) {
-                        alert('A category with this name already exists.');
-                        return;
-                    }
-                    // Update the category in the array
-                    const index = categories.indexOf(oldCategoryName);
-                    if (index > -1) {
-                        categories[index] = trimmedNewName;
-                        localStorage.setItem('categories', JSON.stringify(categories));
-
-                        // Update transactions that used the old category name
-                        transactions.forEach(t => {
-                            if (t.category === oldCategoryName) {
-                                t.category = trimmedNewName;
-                            }
-                        });
-                        localStorage.setItem('transactions', JSON.stringify(transactions));
-
-                        displayCategoriesList();
-                        populateCategorySelects();
-                        displayRecentTransactions(); // Refresh dashboard if needed
-                         if (document.getElementById('filtered-transactions-view').classList.contains('active')) {
-                            displayFilteredTransactions(); // Refresh filtered list if active
-                        }
-                        if (document.getElementById('budget-view').classList.contains('active')) { // NEW
-                            updateBudgetDisplay();
-                        }
-                        alert(`Category updated to "${trimmedNewName}"!`);
-                    }
-                }
-            }
-
-            // --- Borrowed/Lent Money Functions (NEW) ---
-
-            function updateBorrowedLentSummary() {
-                const totalLent = borrowedLentRecords.filter(r => r.type === 'lent' && !r.paid).reduce((sum, r) => sum + parseFloat(r.amount), 0);
-                const totalBorrowed = borrowedLentRecords.filter(r => r.type === 'borrowed' && !r.paid).reduce((sum, r) => sum + parseFloat(r.amount), 0);
-
-                totalLentSpan.textContent = totalLent.toFixed(2);
-                totalBorrowedSpan.textContent = totalBorrowed.toFixed(2);
-            }
-
-            function displayBorrowedLentRecords() {
-                borrowedLentListUl.innerHTML = '';
-                if (borrowedLentRecords.length === 0) {
-                    if (!borrowedLentListUl.contains(noBorrowedLentRecordsMessage)) {
-                        borrowedLentListUl.appendChild(noBorrowedLentRecordsMessage);
-                    }
-                    noBorrowedLentRecordsMessage.style.display = 'block';
-                    return;
-                } else {
-                    noBorrowedLentRecordsMessage.style.display = 'none';
-                }
-
-                // Sort by date descending
-                const sortedRecords = [...borrowedLentRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                sortedRecords.forEach(record => {
-                    const li = document.createElement('li');
-                    li.className = `borrowed-lent-item ${record.type} ${record.paid ? 'paid' : ''}`;
-                    li.dataset.id = record.id;
-
-                    const recordDate = new Date(record.date);
-                    const formattedDate = recordDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-
-                    const typeLabel = record.type === 'lent' ? 'Lent to' : 'Borrowed from';
-                    const statusLabel = record.paid ? '(Paid/Returned)' : '';
-                    const statusIcon = record.paid ? '<i class="fas fa-check-circle paid-btn active"></i>' : '<i class="fas fa-money-bill-transfer paid-btn"></i>'; // Icon for marking as paid
-
-                    li.innerHTML = `
-                        <div class="borrowed-lent-info">
-                            <div class="borrowed-lent-person">${typeLabel} ${record.person} ${statusLabel}</div>
-                            <div class="borrowed-lent-details">
-                                <span>${formattedDate}</span>
-                                ${record.notes ? `<span class="borrowed-lent-notes">${record.notes}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="borrowed-lent-amount">₹ ${parseFloat(record.amount).toFixed(2)}</div>
-                        <div class="borrowed-lent-actions">
-                            <button class="mark-paid-btn" title="Mark as Paid/Returned">${statusIcon}</button>
-                            <button class="edit-borrow-lent-btn" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button class="delete-borrow-lent-btn" title="Delete"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    `;
-                    borrowedLentListUl.appendChild(li);
-                });
-            }
-
-            function saveBorrowedLentRecord(e) {
+            borrowLentForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-
-                const id = borrowLentIdInput.value ? parseInt(borrowLentIdInput.value) : null;
+                const id = borrowLentIdInput.value || generateUniqueId();
                 const type = document.querySelector('input[name="borrow-lent-type"]:checked').value;
                 const amount = parseFloat(borrowLentAmountInput.value);
                 const person = borrowLentPersonInput.value.trim();
@@ -852,476 +802,276 @@
                 const notes = borrowLentNotesInput.value.trim();
                 const paid = borrowLentPaidCheckbox.checked;
 
-                if (isNaN(amount) || amount <= 0 || person === '' || date === '') {
+                if (isNaN(amount) || amount <= 0 || !person || !date) {
                     alert('Please fill in all required fields for the record.');
                     return;
                 }
 
-                if (id) { // Editing existing record
-                    borrowedLentRecords = borrowedLentRecords.map(r =>
-                        r.id === id
-                            ? { ...r, type, amount, person, date, notes, paid }
-                            : r
-                    );
-                    alert('Record updated successfully!');
-                } else { // Adding new record
-                    const newRecord = {
-                        id: Date.now(),
-                        type,
-                        amount,
-                        person,
-                        date,
-                        notes,
-                        paid // Store initial paid status
-                    };
-                    borrowedLentRecords.unshift(newRecord); // Add to the beginning
-                    alert('Record added successfully!');
+                const existingIndex = borrowedLentRecords.findIndex(r => r.id === id);
+                if (existingIndex > -1) {
+                    borrowedLentRecords[existingIndex] = { id, type, amount, person, date, notes, paid };
+                } else {
+                    borrowedLentRecords.push({ id, type, amount, person, date, notes, paid });
                 }
 
-                localStorage.setItem('borrowedLentRecords', JSON.stringify(borrowedLentRecords));
+                saveBorrowedLentRecords();
                 resetBorrowLentForm();
-                switchView('borrowed-lent-view'); // Go back to borrowed/lent list
+                renderBorrowedLentRecords();
+                showView('borrowed-lent-view');
+            });
+
+            saveBudgetGoalBtn.addEventListener('click', () => {
+                const monthYearKey = getMonthYearKey(currentBudgetDate);
+                const newGoal = parseFloat(monthlyBudgetGoalInput.value);
+                if (!isNaN(newGoal) && newGoal >= 0) {
+                    monthlyBudgetGoals[monthYearKey] = newGoal;
+                    saveMonthlyBudgetGoals();
+                    updateBudgetView();
+                    alert('Budget goal saved!');
+                } else {
+                    alert('Please enter a valid budget goal (a positive number).');
+                }
+            });
+
+            // --- Edit & Delete Functions ---
+
+            function editTransaction(id) {
+                const transaction = transactions.find(t => t.id === id);
+                if (transaction) {
+                    transactionIdInput.value = transaction.id;
+                    document.querySelector(`input[name="transaction-type"][value="${transaction.type}"]`).checked = true;
+                    transactionAmountInput.value = transaction.amount;
+                    transactionDescriptionInput.value = transaction.description;
+                    transactionDateInput.value = transaction.date;
+                    transactionCategorySelect.value = transaction.category;
+                    saveTransactionBtn.textContent = 'Update Transaction';
+                    showView('add-expense-view');
+                }
             }
 
-            function deleteBorrowedLentRecord(id) {
-                if (confirm('Are you sure you want to delete this borrowed/lent record?')) {
-                    borrowedLentRecords = borrowedLentRecords.filter(r => r.id !== id);
-                    localStorage.setItem('borrowedLentRecords', JSON.stringify(borrowedLentRecords));
-                    updateBorrowedLentSummary();
-                    displayBorrowedLentRecords();
+            function deleteTransaction(id) {
+                if (confirm('Are you sure you want to delete this transaction?')) {
+                    transactions = transactions.filter(t => t.id !== id);
+                    saveTransactions();
+                    updateDashboard();
+                    updateBudgetView(); // Update budget view
+                    renderFilteredTransactions(); // Re-render filtered list
+                }
+            }
+
+            function deleteCategory(categoryName) {
+                if (confirm(`Are you sure you want to delete the category "${categoryName}"? All transactions with this category will remain, but uncategorized.`)) {
+                    categories.delete(categoryName);
+                    // Optionally, update existing transactions with this category to a default or 'Uncategorized'
+                    transactions.forEach(t => {
+                        if (t.category === categoryName) {
+                            t.category = 'Uncategorized'; // Or remove the category, depending on desired behavior
+                        }
+                    });
+                    saveCategories();
+                    saveTransactions(); // Save transactions after modifying categories
+                    renderCategories();
+                    updateDashboard(); // Refresh dashboard to reflect any category changes
+                    updateBudgetView(); // Refresh budget view
+                    renderFilteredTransactions(); // Refresh filtered view
                 }
             }
 
             function editBorrowedLentRecord(id) {
-                const recordToEdit = borrowedLentRecords.find(r => r.id === id);
-                if (recordToEdit) {
-                    borrowLentIdInput.value = recordToEdit.id;
-                    document.getElementById(`type-${recordToEdit.type}`).checked = true;
-                    borrowLentAmountInput.value = recordToEdit.amount;
-                    borrowLentPersonInput.value = recordToEdit.person;
-                    borrowLentDateInput.value = recordToEdit.date;
-                    borrowLentNotesInput.value = recordToEdit.notes;
-                    borrowLentPaidCheckbox.checked = recordToEdit.paid;
-
-                    document.getElementById('add-borrow-lent-view').querySelector('.section-title').textContent = 'Edit Money Record';
+                const record = borrowedLentRecords.find(r => r.id === id);
+                if (record) {
+                    borrowLentIdInput.value = record.id;
+                    document.querySelector(`input[name="borrow-lent-type"][value="${record.type}"]`).checked = true;
+                    borrowLentAmountInput.value = record.amount;
+                    borrowLentPersonInput.value = record.person;
+                    borrowLentDateInput.value = record.date;
+                    borrowLentNotesInput.value = record.notes;
+                    borrowLentPaidCheckbox.checked = record.paid;
                     saveBorrowLentBtn.textContent = 'Update Record';
-                    switchView('add-borrow-lent-view');
+                    showView('add-borrow-lent-view');
                 }
             }
 
-            function toggleBorrowedLentPaidStatus(id) {
-                borrowedLentRecords = borrowedLentRecords.map(r =>
-                    r.id === id ? { ...r, paid: !r.paid } : r
-                );
-                localStorage.setItem('borrowedLentRecords', JSON.stringify(borrowedLentRecords));
-                updateBorrowedLentSummary();
-                displayBorrowedLentRecords();
+            function deleteBorrowedLentRecord(id) {
+                if (confirm('Are you sure you want to delete this record?')) {
+                    borrowedLentRecords = borrowedLentRecords.filter(r => r.id !== id);
+                    saveBorrowedLentRecords();
+                    renderBorrowedLentRecords();
+                }
             }
 
 
-            function resetBorrowLentForm() {
+            // --- UI Navigation & Reset ---
+
+            function showView(viewId) {
+                views.forEach(view => {
+                    view.classList.remove('active');
+                });
+                document.getElementById(viewId).classList.add('active');
+
+                // Update active nav item
+                navItems.forEach(item => {
+                    if (item.dataset.view === viewId) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+
+                // Run view-specific updates when a view becomes active
+                if (viewId === 'dashboard-view') {
+                    updateDashboard();
+                } else if (viewId === 'categories-view') {
+                    renderCategories();
+                } else if (viewId === 'filtered-transactions-view') {
+                    renderFilteredTransactions();
+                } else if (viewId === 'borrowed-lent-view') {
+                    renderBorrowedLentRecords();
+                } else if (viewId === 'add-expense-view') {
+                    populateCategorySelects(); // Ensure categories are loaded
+                    transactionAmountInput.focus(); // Focus on amount input
+                } else if (viewId === 'budget-view') { // NEW
+                    updateBudgetView();
+                }
+            }
+
+            function resetTransactionForm() {
+                transactionForm.reset();
+                transactionIdInput.value = '';
+                document.getElementById('type-expense').checked = true; // Default to expense
+                transactionAmountInput.value = '';
+                transactionDescriptionInput.value = '';
+                transactionDateInput.value = new Date().toISOString().slice(0, 10); // Set current date
+                transactionCategorySelect.value = '';
+                saveTransactionBtn.textContent = 'Add Transaction';
+            }
+
+            function resetBorrowedLentForm() {
                 borrowLentForm.reset();
                 borrowLentIdInput.value = '';
-                document.getElementById('add-borrow-lent-view').querySelector('.section-title').textContent = 'Add New Money Record';
+                document.getElementById('type-lent').checked = true;
+                borrowLentAmountInput.value = '';
+                borrowLentPersonInput.value = '';
+                borrowLentDateInput.value = new Date().toISOString().slice(0, 10);
+                borrowLentNotesInput.value = '';
+                borrowLentPaidCheckbox.checked = false;
                 saveBorrowLentBtn.textContent = 'Save Record';
-                document.getElementById('type-lent').checked = true; // Default to Money Lent
-                borrowLentDateInput.valueAsDate = new Date();
             }
 
-            // --- NEW: Budget Section Functions ---
-
-            function initializeBudgetSection() {
-                // Set currentBudgetMonth to the current month by default
-                currentBudgetMonth = new Date();
-                updateBudgetDisplay();
+            // --- Date Formatting ---
+            function formatDate(dateString) {
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString(undefined, options);
             }
 
-            function getMonthYearString(date) {
+            // For Budget View month/year display
+            function formatMonthYear(date) {
                 const options = { year: 'numeric', month: 'long' };
-                return date.toLocaleDateString('en-US', options); // e.g., "July 2025"
+                return date.toLocaleDateString(undefined, options);
             }
 
-            function getBudgetKey(date) {
+            function getMonthYearKey(date) {
                 const year = date.getFullYear();
-                const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 0-indexed month, pad with leading zero
-                return `${year}-${month}`; // e.g., "2025-07"
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                return `${year}-${month}`;
             }
 
-            function updateBudgetDisplay() {
-                const monthYearStr = getMonthYearString(currentBudgetMonth);
-                currentBudgetMonthDisplay.textContent = monthYearStr;
-
-                const budgetKey = getBudgetKey(currentBudgetMonth);
-                const budgetGoal = monthlyBudgets[budgetKey] || 0; // Default to 0 if no budget set
-
-                monthlyBudgetGoalInput.value = budgetGoal > 0 ? budgetGoal : ''; // Set input field, clear if 0
-                displayBudgetGoal.textContent = parseFloat(budgetGoal).toFixed(2);
-
-                // Calculate expenses for the current month
-                const expensesForMonth = transactions.filter(t => {
-                    if (t.type !== 'expense') return false; // Only count expenses
-                    const transactionDate = new Date(t.date);
-                    return transactionDate.getFullYear() === currentBudgetMonth.getFullYear() &&
-                           transactionDate.getMonth() === currentBudgetMonth.getMonth();
-                });
-
-                const totalExpenses = expensesForMonth.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-                displayTotalExpenses.textContent = totalExpenses.toFixed(2);
-
-                const remainingBudget = budgetGoal - totalExpenses;
-                displayRemainingBudget.textContent = remainingBudget.toFixed(2);
-
-                // Apply color based on remaining budget
-                if (remainingBudget >= 0) {
-                    displayRemainingBudget.classList.remove('negative');
-                    displayRemainingBudget.classList.add('positive');
-                } else {
-                    displayRemainingBudget.classList.remove('positive');
-                    displayRemainingBudget.classList.add('negative');
-                }
-
-                // Update progress bar
-                let percentageUsed = 0;
-                if (budgetGoal > 0) {
-                    percentageUsed = (totalExpenses / budgetGoal) * 100;
-                }
-                // Cap percentage at 100% for display purposes on the bar
-                const progressBarWidth = Math.min(percentageUsed, 100);
-                budgetProgressBar.style.width = `${progressBarWidth}%`;
-
-                // Change progress bar color based on percentage
-                if (percentageUsed <= 50) {
-                    budgetProgressBar.style.backgroundColor = '#4CAF50'; // Green
-                } else if (percentageUsed <= 80) {
-                    budgetProgressBar.style.backgroundColor = '#ffc107'; // Yellow
-                } else {
-                    budgetProgressBar.style.backgroundColor = '#f44336'; // Red
-                }
-
-                budgetProgressLabel.textContent = `${percentageUsed.toFixed(0)}% of budget used`;
-
-                // Display expenses by category for the month
-                displayCategoryExpensesForMonth(expensesForMonth);
-            }
-
-            function displayCategoryExpensesForMonth(expenses) {
-                budgetCategoryExpensesList.innerHTML = '';
-                const categoryTotals = {};
-
-                expenses.forEach(t => {
-                    if (categoryTotals[t.category]) {
-                        categoryTotals[t.category] += parseFloat(t.amount);
-                    } else {
-                        categoryTotals[t.category] = parseFloat(t.amount);
-                    }
-                });
-
-                const sortedCategories = Object.keys(categoryTotals).sort((a, b) => categoryTotals[b] - categoryTotals[a]);
-
-                if (sortedCategories.length === 0) {
-                    if (!budgetCategoryExpensesList.contains(noBudgetCategoryExpensesMessage)) {
-                        budgetCategoryExpensesList.appendChild(noBudgetCategoryExpensesMessage);
-                    }
-                    noBudgetCategoryExpensesMessage.style.display = 'block';
-                    return;
-                } else {
-                    noBudgetCategoryExpensesMessage.style.display = 'none';
-                }
-
-                sortedCategories.forEach(category => {
-                    const li = document.createElement('li');
-                    li.className = 'category-summary-item';
-                    li.innerHTML = `
-                        <span>${category}</span>
-                        <span>₹ ${categoryTotals[category].toFixed(2)}</span>
-                    `;
-                    budgetCategoryExpensesList.appendChild(li);
-                });
-            }
-
-            function saveMonthlyBudgetGoal() {
-                let goal = parseFloat(monthlyBudgetGoalInput.value);
-                if (isNaN(goal) || goal < 0) {
-                    goal = 0; // Set to 0 if invalid input
-                }
-
-                const budgetKey = getBudgetKey(currentBudgetMonth);
-                monthlyBudgets[budgetKey] = goal;
-                localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
-                updateBudgetDisplay();
-                alert('Monthly budget goal saved!');
-            }
-
-            function changeBudgetMonth(direction) {
-                // direction: -1 for previous, 1 for next
-                currentBudgetMonth.setMonth(currentBudgetMonth.getMonth() + direction);
-                updateBudgetDisplay();
-            }
-
-            // --- Calculator Functions ---
-
-            function inputDigit(digit) {
-                const displayValue = calcOutput.value;
-                if (waitingForSecondOperand === true) {
-                    calcOutput.value = digit;
-                    currentInput = digit;
-                    waitingForSecondOperand = false;
-                } else {
-                    calcOutput.value = displayValue === '0' ? digit : displayValue + digit;
-                    currentInput = calcOutput.value;
-                }
-            }
-
-            function inputDecimal(dot) {
-                if (waitingForSecondOperand === true) {
-                    calcOutput.value = '0.';
-                    currentInput = '0.';
-                    waitingForSecondOperand = false;
-                    return;
-                }
-                if (!calcOutput.value.includes(dot)) {
-                    calcOutput.value += dot;
-                    currentInput = calcOutput.value;
-                }
-            }
-
-            function handleOperator(nextOperator) {
-                const inputValue = parseFloat(currentInput);
-
-                if (operator && waitingForSecondOperand) {
-                    operator = nextOperator;
-                    return;
-                }
-
-                if (firstOperand === null) {
-                    firstOperand = inputValue;
-                } else if (operator) {
-                    const result = operate(firstOperand, inputValue, operator);
-                    calcOutput.value = parseFloat(result.toFixed(5)); // Limit decimals
-                    currentInput = calcOutput.value;
-                    firstOperand = parseFloat(result.toFixed(5));
-                }
-
-                waitingForSecondOperand = true;
-                operator = nextOperator;
-            }
-
-            function operate(num1, num2, op) {
-                if (op === '+') return num1 + num2;
-                if (op === '-') return num1 - num2;
-                if (op === '*') return num1 * num2;
-                if (op === '/') {
-                    if (num2 === 0) {
-                        alert("Cannot divide by zero!");
-                        return 0; // Or handle as an error state
-                    }
-                    return num1 / num2;
-                }
-                return num2; // For equals, if no operator pending
-            }
-
-            function resetCalculator() {
-                currentInput = '0';
-                firstOperand = null;
-                operator = null;
-                waitingForSecondOperand = false;
-                calcOutput.value = '0';
-            }
-
-            function backspaceCalculator() {
-                if (calcOutput.value.length === 1) {
-                    calcOutput.value = '0';
-                    currentInput = '0';
-                } else {
-                    calcOutput.value = calcOutput.value.slice(0, -1);
-                    currentInput = calcOutput.value;
-                }
-            }
-
-            function applyCalculatorResult() {
-                // Check if the "Add Transaction" view is active
-                const addTransactionView = document.getElementById('add-expense-view');
-                if (addTransactionView.classList.contains('active')) {
-                    transactionAmountInput.value = parseFloat(calcOutput.value);
-                } else {
-                    // If not in add transaction view, you might want to:
-                    // 1. Show an alert that it only applies to the amount field
-                    // 2. Do nothing
-                    // 3. (More complex) Apply to a currently active input field if one is focused
-                    alert("Calculator result applied to the 'Amount' field in the Add Transaction section.");
-                    // Or, if you want it to always apply to expense-amount when apply is pressed:
-                    // transactionAmountInput.value = parseFloat(calcOutput.value);
-                }
-                calculatorContainer.style.display = 'none'; // Hide calculator after applying
-                resetCalculator(); // Reset calculator for next use
-            }
-
-
-            // --- Event Listeners ---
-
-            // Navigation
+            // --- Event Listeners for Navigation ---
             navItems.forEach(item => {
                 item.addEventListener('click', () => {
                     const viewId = item.dataset.view;
-                    if (viewId) {
-                        switchView(viewId);
-                    }
+                    showView(viewId);
                 });
             });
 
-            // Back to Dashboard buttons
             backToDashboardBtns.forEach(btn => {
-                btn.addEventListener('click', () => switchView('dashboard-view'));
+                btn.addEventListener('click', () => showView('dashboard-view'));
             });
 
-            // Back to Borrowed/Lent List (NEW)
-            backToBorrowLentBtn.addEventListener('click', () => switchView('borrowed-lent-view'));
-
-
-            // Transaction Form Submission
-            transactionForm.addEventListener('submit', saveTransaction);
-
-            // Delete/Edit Transaction (Event delegation for dynamically added items)
-            recentTransactionList.addEventListener('click', (e) => {
-                const targetBtn = e.target.closest('button');
-                if (!targetBtn) return;
-                const li = targetBtn.closest('.transaction-item');
-                if (!li) return;
-                const id = parseInt(li.dataset.id);
-
-                if (targetBtn.classList.contains('delete-transaction-btn')) {
-                    deleteTransaction(id);
-                } else if (targetBtn.classList.contains('edit-transaction-btn')) {
-                    editTransaction(id);
-                }
+            addBorrowLentBtn.addEventListener('click', () => {
+                resetBorrowLentForm();
+                showView('add-borrow-lent-view');
             });
 
-            filteredTransactionList.addEventListener('click', (e) => {
-                const targetBtn = e.target.closest('button');
-                if (!targetBtn) return;
-                const li = targetBtn.closest('.transaction-item');
-                if (!li) return;
-                const id = parseInt(li.dataset.id);
-
-                if (targetBtn.classList.contains('delete-transaction-btn')) {
-                    deleteTransaction(id);
-                } else if (targetBtn.classList.contains('edit-transaction-btn')) {
-                    editTransaction(id);
-                }
-            });
+            if (backToBorrowLentBtn) {
+                backToBorrowLentBtn.addEventListener('click', () => showView('borrowed-lent-view'));
+            }
 
 
-            // Transaction Filtering for dedicated section
-            applyFilterBtn.addEventListener('click', applyFiltersAndDisplay);
-            clearFilterBtn.addEventListener('click', clearAllFilters);
-            filterCategorySelect.addEventListener('change', applyFiltersAndDisplay);
-            filterStartDateInput.addEventListener('change', applyFiltersAndDisplay);
-            filterEndDateInput.addEventListener('change', applyFiltersAndDisplay);
-            filterTypeSelect.addEventListener('change', applyFiltersAndDisplay); // NEW: Listen to type filter
-
-            // Add New Category
-            addNewCategoryBtn.addEventListener('click', addCategory);
-
-            // Edit/Delete Category (Event delegation)
-            categoryListUl.addEventListener('click', (e) => {
-                const target = e.target.closest('button');
-                if (!target) return;
-
-                const li = target.closest('.category-item');
-                if (!li) return;
-
-                const categoryName = li.dataset.categoryName;
-
-                if (target.classList.contains('delete-category-btn')) {
-                    deleteCategory(categoryName);
-                } else if (target.classList.contains('edit-category-btn')) {
-                    editCategory(categoryName);
-                }
-            });
-
-            // Borrowed/Lent Money Event Listeners (NEW)
-            addBorrowLentBtn.addEventListener('click', () => switchView('add-borrow-lent-view'));
-            borrowLentForm.addEventListener('submit', saveBorrowedLentRecord);
-            borrowedLentListUl.addEventListener('click', (e) => {
-                const targetBtn = e.target.closest('button');
-                if (!targetBtn) return;
-                const li = targetBtn.closest('.borrowed-lent-item');
-                if (!li) return;
-                const id = parseInt(li.dataset.id);
-
-                if (targetBtn.classList.contains('delete-borrow-lent-btn')) {
-                    deleteBorrowedLentRecord(id);
-                } else if (targetBtn.classList.contains('edit-borrow-lent-btn')) {
-                    editBorrowedLentRecord(id);
-                } else if (targetBtn.classList.contains('mark-paid-btn')) {
-                    toggleBorrowedLentPaidStatus(id);
-                }
-            });
-
-            // --- NEW: Budget Section Event Listeners ---
-            prevMonthBtn.addEventListener('click', () => changeBudgetMonth(-1));
-            nextMonthBtn.addEventListener('click', () => changeBudgetMonth(1));
-            saveBudgetGoalBtn.addEventListener('click', saveMonthlyBudgetGoal);
-            monthlyBudgetGoalInput.addEventListener('keydown', (e) => { // Allow pressing Enter to save budget
-                if (e.key === 'Enter') {
-                    saveMonthlyBudgetGoal();
-                }
-            });
-
-            // Theme Toggle
+            // --- Theme Toggling ---
             themeToggleBtn.addEventListener('click', () => {
-                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                applyTheme(newTheme);
-            });
-
-            // --- Calculator Event Listeners ---
-            // NEW: Event listener for the global calculator toggle button
-            calculatorToggleBtn.addEventListener('click', () => {
-                // Toggle visibility
-                if (calculatorContainer.style.display === 'none') {
-                    calculatorContainer.style.display = 'block';
-                    // If an amount input is active, copy its value to the calculator
-                    if (document.getElementById('add-expense-view').classList.contains('active')) {
-                        if (transactionAmountInput.value) {
-                            currentInput = transactionAmountInput.value;
-                            calcOutput.value = transactionAmountInput.value;
-                        } else {
-                            resetCalculator();
-                        }
-                    } else if (document.getElementById('add-borrow-lent-view').classList.contains('active')) {
-                         if (borrowLentAmountInput.value) {
-                            currentInput = borrowLentAmountInput.value;
-                            calcOutput.value = borrowLentAmountInput.value;
-                        } else {
-                            resetCalculator();
-                        }
-                    } else {
-                        resetCalculator(); // Reset if no amount input field is directly active
-                    }
-
+                document.body.classList.toggle('dark-theme');
+                // Save theme preference to local storage
+                if (document.body.classList.contains('dark-theme')) {
+                    localStorage.setItem(LS_THEME, 'dark');
                 } else {
-                    calculatorContainer.style.display = 'none';
-                    resetCalculator(); // Always reset when closing
+                    localStorage.setItem(LS_THEME, 'light');
                 }
             });
 
-            calcButtons.addEventListener('click', (e) => {
-                const target = e.target;
-                if (!target.matches('button')) return; // Ensure it's a button
+            function loadTheme() {
+                const savedTheme = localStorage.getItem(LS_THEME);
+                if (savedTheme === 'dark') {
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+            }
+
+
+            // --- Calculator Functionality ---
+
+            calculatorToggleBtn.addEventListener('click', () => {
+                if (calculatorContainer.style.display === 'block') {
+                    calculatorContainer.style.display = 'none';
+                    resetCalculator();
+                } else {
+                    calculatorContainer.style.display = 'block';
+                    calcOutput.value = '0';
+                    firstOperand = null;
+                    operator = null;
+                    waitingForSecondOperand = false;
+                }
+            });
+
+            calcButtons.addEventListener('click', (event) => {
+                const { target } = event;
+                if (!target.matches('button')) {
+                    return;
+                }
 
                 const value = target.textContent;
                 const action = target.dataset.action;
 
-                if (target.classList.contains('number') || target.classList.contains('decimal')) {
-                    inputDigit(value);
+                if (target.classList.contains('number')) {
+                    if (waitingForSecondOperand === true) {
+                        calcOutput.value = value;
+                        waitingForSecondOperand = false;
+                    } else {
+                        calcOutput.value = calcOutput.value === '0' ? value : calcOutput.value + value;
+                    }
+                } else if (target.classList.contains('decimal')) {
+                    if (!calcOutput.value.includes('.')) {
+                        calcOutput.value += '.';
+                    }
                 } else if (target.classList.contains('operator')) {
-                    handleOperator(value);
+                    if (firstOperand === null) {
+                        firstOperand = parseFloat(calcOutput.value);
+                    } else if (operator) {
+                        const result = operate(firstOperand, parseFloat(calcOutput.value), operator);
+                        calcOutput.value = parseFloat(result.toFixed(5)); // To avoid long decimals
+                        firstOperand = parseFloat(calcOutput.value);
+                    }
+                    operator = action;
+                    waitingForSecondOperand = true;
                 } else if (action === 'clear') {
                     resetCalculator();
                 } else if (action === 'backspace') {
-                    backspaceCalculator();
+                    calcOutput.value = calcOutput.value.slice(0, -1) || '0';
+                    if (calcOutput.value === '0') resetCalculator(); // If cleared to 0, reset state
                 } else if (action === 'equals') {
-                    if (firstOperand !== null && operator !== null && !waitingForSecondOperand) {
+                    if (firstOperand !== null && operator !== null && waitingForSecondOperand === false) {
+                        const currentInput = calcOutput.value;
                         const result = operate(firstOperand, parseFloat(currentInput), operator);
                         calcOutput.value = parseFloat(result.toFixed(5));
                         currentInput = calcOutput.value;
@@ -1344,7 +1094,37 @@
             });
 
 
+            function operate(op1, op2, op) {
+                switch (op) {
+                    case 'add': return op1 + op2;
+                    case 'subtract': return op1 - op2;
+                    case 'multiply': return op1 * op2;
+                    case 'divide': return op1 / op2;
+                    default: return op2;
+                }
+            }
+
+            function resetCalculator() {
+                calcOutput.value = '0';
+                firstOperand = null;
+                operator = null;
+                waitingForSecondOperand = false;
+            }
+
+
             // --- Initialize on Load ---
+            function initializeApp() {
+                loadTheme();
+                loadCategories();
+                loadTransactions();
+                loadBorrowedLentRecords();
+                loadMonthlyBudgetGoals();
+                resetTransactionForm(); // Set current date by default
+                resetBorrowLentForm(); // Set current date by default
+                showView('dashboard-view'); // Start on dashboard
+                updateBudgetView(); // Initialize budget view for current month
+            }
+
             initializeApp();
         });
     </script>
