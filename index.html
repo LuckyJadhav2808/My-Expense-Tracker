@@ -783,48 +783,61 @@
             }
 
             function displayBorrowedLentRecords() {
-                borrowedLentListUl.innerHTML = '';
-                if (borrowedLentRecords.length === 0) {
-                    borrowedLentListUl.appendChild(noBorrowedLentRecordsMessage);
-                    noBorrowedLentRecordsMessage.style.display = 'block';
-                    return;
+                try {
+                    borrowedLentListUl.innerHTML = '';
+                    if (borrowedLentRecords.length === 0) {
+                        borrowedLentListUl.appendChild(noBorrowedLentRecordsMessage);
+                        noBorrowedLentRecordsMessage.style.display = 'block';
+                        return;
+                    }
+                    noBorrowedLentRecordsMessage.style.display = 'none';
+
+                    const sortedRecords = [...borrowedLentRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    sortedRecords.forEach(record => {
+                        const listItem = document.createElement('li');
+                        // Corrected: Conditionally add 'paid' class to avoid empty string
+                        listItem.classList.add('borrowed-lent-item', record.type);
+                        if (record.paid) {
+                            listItem.classList.add('paid');
+                        }
+                        listItem.innerHTML = `
+                            <div class="borrowed-lent-info">
+                                <p class="borrowed-lent-description">
+                                    <span class="record-type">${record.type === 'lent' ? 'Lent to' : 'Borrowed from'}</span>
+                                    <span class="person-name">${record.person}</span>
+                                </p>
+                                <p class="borrowed-lent-date">${formatDate(record.date)}</p>
+                                ${record.notes ? `<p class="borrowed-lent-notes">Notes: ${record.notes}</p>` : ''}
+                            </div>
+                            <div class="borrowed-lent-amount">
+                                ₹ ${formatCurrency(record.amount)}
+                            </div>
+                            <div class="borrowed-lent-actions">
+                                <button class="toggle-paid-btn" data-id="${record.id}" title="${record.paid ? 'Mark as Unpaid' : 'Mark as Paid'}">
+                                    <i class="${record.paid ? 'fas fa-check-circle' : 'far fa-circle'}"></i>
+                                </button>
+                                <button class="edit-borrow-lent-btn" data-id="${record.id}"><i class="fas fa-edit"></i></button>
+                                <button class="delete-borrow-lent-btn" data-id="${record.id}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        borrowedLentListUl.appendChild(listItem);
+                        console.log(record.id, "Record appended to DOM."); // Changed message for clarity
+                    });
+
+                    borrowedLentListUl.querySelectorAll('.edit-borrow-lent-btn').forEach(button => {
+                        button.addEventListener('click', (e) => editBorrowLentRecord(e.currentTarget.dataset.id));
+                    });
+                    borrowedLentListUl.querySelectorAll('.delete-borrow-lent-btn').forEach(button => {
+                        button.addEventListener('click', (e) => deleteBorrowLentRecord(e.currentTarget.dataset.id));
+                    });
+                     borrowedLentListUl.querySelectorAll('.toggle-paid-btn').forEach(button => {
+                        button.addEventListener('click', (e) => toggleBorrowLentPaidStatus(e.currentTarget.dataset.id));
+                    });
+                } catch (error) {
+                    alert('An error occurred while displaying records: ' + error.message);
+                    console.error("Error in displayBorrowedLentRecords:", error);
                 }
-                noBorrowedLentRecordsMessage.style.display = 'none';
-
-                const sortedRecords = [...borrowedLentRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                sortedRecords.forEach(record => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('borrowed-lent-item', record.type, record.paid ? 'paid' : '');
-                    listItem.innerHTML = `
-                        <div class="borrowed-lent-info">
-                            <p class="borrowed-lent-description">${record.description} with <span class="person-name">${record.person}</span></p>
-                            <p class="borrowed-lent-date">${formatDate(record.date)}</p>
-                            ${record.notes ? `<p class="borrowed-lent-notes">Notes: ${record.notes}</p>` : ''}
-                        </div>
-                        <div class="borrowed-lent-amount">
-                            ₹ ${formatCurrency(record.amount)}
-                        </div>
-                        <div class="borrowed-lent-actions">
-                            <button class="toggle-paid-btn" data-id="${record.id}" title="${record.paid ? 'Mark as Unpaid' : 'Mark as Paid'}">
-                                <i class="${record.paid ? 'fas fa-check-circle' : 'far fa-circle'}"></i>
-                            </button>
-                            <button class="edit-borrow-lent-btn" data-id="${record.id}"><i class="fas fa-edit"></i></button>
-                            <button class="delete-borrow-lent-btn" data-id="${record.id}"><i class="fas fa-trash"></i></button>
-                        </div>
-                    `;
-                    borrowedLentListUl.appendChild(listItem);
-                });
-
-                borrowedLentListUl.querySelectorAll('.edit-borrow-lent-btn').forEach(button => {
-                    button.addEventListener('click', (e) => editBorrowLentRecord(e.currentTarget.dataset.id));
-                });
-                borrowedLentListUl.querySelectorAll('.delete-borrow-lent-btn').forEach(button => {
-                    button.addEventListener('click', (e) => deleteBorrowLentRecord(e.currentTarget.dataset.id));
-                });
-                 borrowedLentListUl.querySelectorAll('.toggle-paid-btn').forEach(button => {
-                    button.addEventListener('click', (e) => toggleBorrowLentPaidStatus(e.currentTarget.dataset.id));
-                });
             }
 
             addBorrowLentBtn.addEventListener('click', () => switchView('add-borrow-lent-view'));
@@ -846,35 +859,40 @@
             });
 
             function addOrUpdateBorrowLentRecord() {
-                const id = borrowLentIdInput.value || generateId();
-                const type = document.querySelector('input[name="borrow-lent-type"]:checked').value;
-                const amount = parseFloat(borrowLentAmountInput.value);
-                const person = borrowLentPersonInput.value.trim();
-                const date = borrowLentDateInput.value;
-                const notes = borrowLentNotesInput.value.trim();
-                const paid = borrowLentPaidCheckbox.checked;
-                const description = `${type === 'lent' ? 'Lent' : 'Borrowed'} ₹${formatCurrency(amount)}`; // Simple description
+                try {
+                    const id = borrowLentIdInput.value || generateId();
+                    const type = document.querySelector('input[name="borrow-lent-type"]:checked').value;
+                    const amount = parseFloat(borrowLentAmountInput.value);
+                    const person = borrowLentPersonInput.value.trim();
+                    const date = borrowLentDateInput.value;
+                    const notes = borrowLentNotesInput.value.trim();
+                    const paid = borrowLentPaidCheckbox.checked;
+                    
+                    if (!amount || amount <= 0 || !person || !date) {
+                        alert('Please fill in all required fields (Amount, Person, Date).');
+                        return;
+                    }
 
-                if (!amount || amount <= 0 || !person || !date) {
-                    alert('Please fill in all required fields (Amount, Person, Date).');
-                    return;
+                    const newRecord = { id, type, amount, person, date, notes, paid };
+
+                    const existingIndex = borrowedLentRecords.findIndex(r => r.id === id);
+                    if (existingIndex > -1) {
+                        borrowedLentRecords[existingIndex] = newRecord; // Update existing
+                    } else {
+                        borrowedLentRecords.push(newRecord); // Add new
+                    }
+
+                    console.log("borrowedLentRecords after add/update:", borrowedLentRecords); // Added this for explicit check
+                    saveData();
+                    updateBorrowedLentSummary();
+                    displayBorrowedLentRecords();
+                    resetBorrowLentForm();
+                    alert('Borrowed/Lent record saved successfully!'); // This alert is before switchView
+                    switchView('borrowed-lent-view');
+                } catch (error) {
+                    alert('An error occurred while saving the record: ' + error.message);
+                    console.error("Error in addOrUpdateBorrowLentRecord:", error);
                 }
-
-                const newRecord = { id, type, amount, person, date, notes, paid, description };
-
-                const existingIndex = borrowedLentRecords.findIndex(r => r.id === id);
-                if (existingIndex > -1) {
-                    borrowedLentRecords[existingIndex] = newRecord; // Update existing
-                } else {
-                    borrowedLentRecords.push(newRecord); // Add new
-                }
-
-                saveData();
-                updateBorrowedLentSummary();
-                displayBorrowedLentRecords();
-                resetBorrowLentForm();
-                switchView('borrowed-lent-view');
-                alert('Borrowed/Lent record saved successfully!');
             }
 
             function editBorrowLentRecord(id) {
