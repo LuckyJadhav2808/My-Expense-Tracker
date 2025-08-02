@@ -495,6 +495,12 @@
                 transactionForm.reset();
                 transactionIdInput.value = '';
                 saveTransactionBtn.textContent = 'Add Transaction';
+                // Set the date input to the current date
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = (today.getMonth() + 1).toString().padStart(2, '0');
+                const day = today.getDate().toString().padStart(2, '0');
+                transactionDateInput.value = `${year}-${month}-${day}`;
             }
 
             // Function to add a new transaction or update an existing one
@@ -1071,6 +1077,9 @@
                 if (viewId === 'dashboard-view') {
                     renderTransactions();
                     updateBalance();
+                } else if (viewId === 'add-expense-view') {
+                     // **BUG FIX:** Reset the transaction form when navigating to this view
+                     resetTransactionForm();
                 } else if (viewId === 'categories-view') {
                     displayCategories();
                 } else if (viewId === 'filtered-transactions-view') {
