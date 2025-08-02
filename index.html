@@ -607,6 +607,7 @@
             }
 
             // --- Monthly Summary Functionality ---
+            // Function to render monthly summaries
             function displayMonthlySummaries() {
                 monthlySummaryList.innerHTML = '';
                 if (monthlySummaries.length === 0) {
@@ -618,7 +619,8 @@
                 }
                 monthlySummaries.forEach(summary => {
                     const li = document.createElement('li');
-                    li.className = 'monthly-summary-item';
+                    li.className = 'monthly-summary-item clickable-summary'; // Added new class for styling
+                    li.dataset.monthYear = summary.monthYear; // Store the month and year
                     li.innerHTML = `
                         <div class="month-header">
                             <h3>${summary.monthYear}</h3>
@@ -631,6 +633,38 @@
                     `;
                     monthlySummaryList.appendChild(li);
                 });
+            }
+            // Function to show transactions for a specific month from the summary
+                        
+            let currentHistoricalTransactions = []; // A new variable to temporarily hold historical data
+
+            function showMonthlyTransactions(monthYearString) {
+                const summary = monthlySummaries.find(s => s.monthYear === monthYearString);
+                if (!summary) return;
+
+                currentHistoricalTransactions = summary.transactions;
+
+                const [monthName, year] = monthYearString.split(' ');
+                const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth();
+                
+                const startDate = new Date(year, monthIndex, 1);
+                const endDate = new Date(year, monthIndex + 1, 0);
+
+                // Format dates to YYYY-MM-DD for the filter inputs
+                const formattedStartDate = startDate.toISOString().split('T')[0];
+                const formattedEndDate = endDate.toISOString().split('T')[0];
+
+                // Set the filter inputs and state
+                filterStartDateInput.value = formattedStartDate;
+                filterEndDateInput.value = formattedEndDate;
+                filterCategorySelect.value = 'all';
+                filterTypeSelect.value = 'all';
+
+                // Instead of applying a filter, we directly display the transactions.
+                // The filter section will still work, but it's now filtering the
+                // historical data.
+                displayFilteredTransactions();
+                switchView('filtered-transactions-view');
             }
 
             // --- Add/Edit Transaction Functionality ---
@@ -759,43 +793,47 @@
             }
 
             function displayFilteredTransactions() {
-                filteredTransactionList.innerHTML = '';
-                let filtered = [...transactions];
-                if (currentFilter.startDate) {
-                    filtered = filtered.filter(t => new Date(t.date) >= new Date(currentFilter.startDate));
-                }
-                if (currentFilter.endDate) {
-                    filtered = filtered.filter(t => new Date(t.date) <= new Date(currentFilter.endDate));
-                }
-                if (currentFilter.category !== 'all') {
-                    filtered = filtered.filter(t => t.category === currentFilter.category);
-                }
-                if (currentFilter.type !== 'all') {
-                    filtered = filtered.filter(t => t.type === currentFilter.type);
-                }
+            filteredTransactionList.innerHTML = '';
+            
+            // Check if we are displaying historical transactions
+            const sourceTransactions = currentHistoricalTransactions.length > 0 ? currentHistoricalTransactions : transactions;
 
-                if (filtered.length === 0) {
-                    filteredTransactionList.appendChild(noFilteredTransactionsMessage);
-                    noFilteredTransactionsMessage.style.display = 'block';
-                    return;
-                }
-                noFilteredTransactionsMessage.style.display = 'none';
-
-                filtered.forEach(t => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('transaction-item', t.type);
-                    listItem.innerHTML = `
-                        <div class="transaction-info">
-                            <p class="transaction-description">${t.description}</p>
-                            <p class="transaction-date">${formatDate(t.date)}</p>
-                            <p class="transaction-category">${t.category}</p>
-                        </div>
-                        <div class="transaction-amount">₹ ${t.type === 'expense' ? '-' : '+'}${formatCurrency(t.amount)}</div>
-                    `;
-                    filteredTransactionList.appendChild(listItem);
-                });
+            let filtered = [...sourceTransactions];
+            
+            if (currentFilter.startDate) {
+                filtered = filtered.filter(t => new Date(t.date) >= new Date(currentFilter.startDate));
+            }
+            if (currentFilter.endDate) {
+                filtered = filtered.filter(t => new Date(t.date) <= new Date(currentFilter.endDate));
+            }
+            if (currentFilter.category !== 'all') {
+                filtered = filtered.filter(t => t.category === currentFilter.category);
+            }
+            if (currentFilter.type !== 'all') {
+                filtered = filtered.filter(t => t.type === currentFilter.type);
             }
 
+            if (filtered.length === 0) {
+                filteredTransactionList.appendChild(noFilteredTransactionsMessage);
+                noFilteredTransactionsMessage.style.display = 'block';
+                return;
+            }
+            noFilteredTransactionsMessage.style.display = 'none';
+
+            filtered.forEach(t => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('transaction-item', t.type);
+                listItem.innerHTML = `
+                    <div class="transaction-info">
+                        <p class="transaction-description">${t.description}</p>
+                        <p class="transaction-date">${formatDate(t.date)}</p>
+                        <p class="transaction-category">${t.category}</p>
+                    </div>
+                    <div class="transaction-amount">₹ ${t.type === 'expense' ? '-' : '+'}${formatCurrency(t.amount)}</div>
+                `;
+                filteredTransactionList.appendChild(listItem);
+            });
+        }
             function applyFilters() {
                 currentFilter.startDate = filterStartDateInput.value;
                 currentFilter.endDate = filterEndDateInput.value;
@@ -1126,6 +1164,14 @@
 
             // --- Event Listeners ---
             navItems.forEach(item => item.addEventListener('click', (e) => switchView(e.currentTarget.dataset.view)));
+            // Event listener for monthly summary section
+            monthlySummaryList.addEventListener('click', (e) => {
+                const clickedItem = e.target.closest('.monthly-summary-item');
+                if (clickedItem) {
+                    const monthYear = clickedItem.dataset.monthYear;
+                    showMonthlyTransactions(monthYear);
+                }
+            });
             backToDashboardBtns.forEach(btn => btn.addEventListener('click', () => switchView('dashboard-view')));
             quickActionBtns.forEach(btn => btn.addEventListener('click', (e) => switchView(e.currentTarget.dataset.view)));
             document.querySelector('#add-borrow-lent-view .back-to-borrow-lent-btn').addEventListener('click', () => switchView('borrowed-lent-view'));
