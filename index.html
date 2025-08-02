@@ -609,12 +609,14 @@
             // Function to render filtered transactions
             function displayFilteredTransactions(monthYear = null) {
                 filteredTransactionList.innerHTML = '';
+                noFilteredTransactionsMessage.style.display = 'none';
 
                 // Check if we are displaying historical transactions
                 const sourceTransactions = monthYear ? currentHistoricalTransactions : transactions;
 
                 let filtered = [...sourceTransactions];
                 
+                // The rest of your filtering logic remains the same
                 if (currentFilter.startDate) {
                     filtered = filtered.filter(t => new Date(t.date) >= new Date(currentFilter.startDate));
                 }
@@ -632,12 +634,12 @@
                     noFilteredTransactionsMessage.style.display = 'block';
                     return;
                 }
-                noFilteredTransactionsMessage.style.display = 'none';
 
                 filtered.forEach(t => {
                     const listItem = document.createElement('li');
                     listItem.classList.add('transaction-item', t.type);
                     listItem.dataset.id = t.id;
+                    // Make sure to add the monthYear data attribute only when it's a historical view
                     if (monthYear) {
                         listItem.dataset.monthYear = monthYear;
                     }
@@ -666,6 +668,7 @@
                 currentFilter.endDate = filterEndDateInput.value;
                 currentFilter.category = filterCategorySelect.value;
                 currentFilter.type = filterTypeSelect.value;
+                // Pass the historical month year if available, otherwise pass null
                 displayFilteredTransactions(currentHistoricalMonthYear || null);
             }
 
@@ -676,7 +679,12 @@
                 filterCategorySelect.value = 'all';
                 filterTypeSelect.value = 'all';
                 currentFilter = { startDate: null, endDate: null, category: 'all', type: 'all' };
-                // Call displayFilteredTransactions without a monthYear to show current transactions
+                
+                // Clear historical view state
+                currentHistoricalTransactions = [];
+                currentHistoricalMonthYear = '';
+                
+                // Display the current month's transactions
                 displayFilteredTransactions();
             }
 
@@ -878,7 +886,9 @@
                 filterCategorySelect.value = 'all';
                 filterTypeSelect.value = 'all';
 
-                displayFilteredTransactions(monthYearString);
+                // **BUG FIX:** Call applyFilters() to update the currentFilter object
+                applyFilters();
+
                 switchView('filtered-transactions-view');
             }
 
@@ -1064,10 +1074,11 @@
                 } else if (viewId === 'categories-view') {
                     displayCategories();
                 } else if (viewId === 'filtered-transactions-view') {
-                    // Clear historical state when navigating away from it
-                    currentHistoricalTransactions = [];
-                    currentHistoricalMonthYear = '';
-                    displayFilteredTransactions();
+                    // **NEW FIX:** Clear historical state and filters when navigating to this view
+                    // This prevents old data from persisting when the user navigates directly
+                    if (currentHistoricalMonthYear === '') {
+                        clearFilters();
+                    }
                 } else if (viewId === 'borrowed-lent-view') {
                     renderBorrowedLentRecords();
                 } else if (viewId === 'budget-view') {
