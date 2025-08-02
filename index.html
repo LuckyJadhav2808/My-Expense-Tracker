@@ -238,6 +238,10 @@
                         <i class="fas fa-upload"></i>
                         <span>Restore Data</span>
                     </button>
+                     <button class="secondary-btn" id="force-monthly-summary-btn">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Force Monthly Summary</span>
+                    </button>
                 </div>
                  <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
             </section>
@@ -406,6 +410,7 @@
             // Backup/Restore buttons (moved to #backup-view)
             const backupDataBtn = document.getElementById('backup-data-btn');
             const restoreDataBtn = document.getElementById('restore-data-btn');
+            const forceMonthlySummaryBtn = document.getElementById('force-monthly-summary-btn');
 
             // --- Data Storage (Using localStorage) ---
             let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
@@ -1175,6 +1180,19 @@
 
             backupDataBtn.addEventListener('click', backupData);
             restoreDataBtn.addEventListener('click', restoreData);
+            forceMonthlySummaryBtn.addEventListener('click', () => {
+            // Get the current date
+            const now = new Date();
+            // Simulate a month change by setting the last checked date to the previous month
+            const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            localStorage.setItem('lastCheckDate', previousMonth.toISOString());
+
+            // Run the check and save function
+            checkAndSaveMonthlySummary();
+            
+            // Refresh the page to see the changes
+            location.reload(); 
+        });
             
             // --- Initialization ---
             initializeApp();
