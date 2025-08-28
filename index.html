@@ -3,1326 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Expense Tracker</title>
+    <title>Expense Tracker</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="expense 192.jpg" sizes="192x192">
     <link rel="icon" type="image/png" href="expense 512.jpg" sizes="512x512">
     <link rel="apple-touch-icon" href="expense 180.jpg">
 </head>
-<body>
-
-    <div class="app-container">
-        <header class="app-header">
-            <div class="header-left">
-                <i class="fas fa-sun toggle-theme-btn" id="themeToggle"></i>
-            </div>
-            <div class="header-center">
-                <h1 class="app-title">Expense Tracker</h1>
-            </div>
-            <div class="header-right">
-                <i class="fas fa-calculator toggle-calculator-btn" id="calculatorToggle"></i>
-            </div>
+<body class="theme-light">
+    <div class="container">
+        <header>
+            <nav>
+                <div class="logo">luckily</div>
+                <div class="menu-items">
+                    <a href="#" class="nav-link active" data-section="dashboard">Dashboard</a>
+                    <a href="#" class="nav-link" data-section="debts">Debts</a>
+                    <a href="#" class="nav-link" data-section="splitwise">Splitwise</a>
+                    <a href="#" class="nav-link" data-section="budget">Budget</a>
+                </div>
+                <div class="header-buttons">
+                    <button id="theme-toggle-btn">Change Theme</button>
+                    <button id="calculator-btn">Calculator</button>
+                </div>
+            </nav>
         </header>
 
-        <main class="main-content">
-            <section id="dashboard-view" class="view active">
-                <div class="balance-card">
-                    <p class="balance-label">Current Balance</p>
-                    <p class="balance-amount">₹ <span>0.00</span></p>
-                </div>
-
-                <div class="quick-actions">
-                    <button class="action-btn" data-view="add-expense-view">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Add New</span>
-                    </button>
+        <main>
+            <div id="dashboard" class="main-section active">
+                <div class="sidebar">
+                    <div class="section-box frog-box">
+                        <h2>Add Transaction</h2>
+                        <form id="transaction-form">
+                            <input type="date" id="date-input" required>
+                            <input type="time" id="time-input" required>
+                            <input type="text" id="description-input" placeholder="Description" required>
+                            <input type="number" id="amount-input" placeholder="Amount" required>
+                            <div id="category-section">
+                                <select id="category-select">
+                                    <option value="Food">Food</option>
+                                    <option value="Bills">Bills</option>
+                                    <option value="Transport">Transport</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <input type="text" id="new-category-input" placeholder="New Category">
+                                <button type="button" id="add-category-btn">Add Category</button>
+                            </div>
+                            <label class="tooltip">
+                                <input type="checkbox" id="recurring-checkbox">
+                                Recurring Transaction
+                                <span class="tooltiptext">Automatically add this transaction to the new month</span>
+                            </label>
+                            <button type="submit" id="add-transaction-btn">Add</button>
+                        </form>
+                    </div>
+                    
+                    <div class="section-box">
+                        <h2>Total Expenses</h2>
+                        <p id="total-expenses">$0.00</p>
                     </div>
 
-                <h2 class="section-title">Recent Transactions</h2>
-                <ul class="transaction-list" id="recent-transaction-list">
-                    <li class="no-transactions">No transactions yet! Add one to get started.</li>
-                </ul>
-            </section>
-
-            <section id="add-expense-view" class="view">
-                <h2 class="section-title">Add New Transaction</h2>
-                <form id="expense-form" class="expense-form">
-                    <input type="hidden" id="expense-id">
-                    <div class="form-group">
-                        <label for="transaction-type">Transaction Type</label>
-                        <div class="transaction-type-selector">
-                            <input type="radio" id="type-expense" name="transaction-type" value="expense" checked>
-                            <label for="type-expense">Expense</label>
-                            <input type="radio" id="type-income" name="transaction-type" value="income">
-                            <label for="type-income">Income</label>
+                    <div class="section-box">
+                        <h2>Quick Add</h2>
+                        <div class="quick-add-buttons">
+                            <button class="quick-add-btn" data-category="Food" data-amount="10">
+                                <i class="fas fa-utensils"></i> Food
+                            </button>
+                            <button class="quick-add-btn" data-category="Transport" data-amount="5">
+                                <i class="fas fa-car"></i> Transport
+                            </button>
+                            <button class="quick-add-btn" data-category="Bills" data-amount="50">
+                                <i class="fas fa-file-invoice"></i> Bills
+                            </button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="expense-amount">Amount</label>
-                        <input type="number" id="expense-amount" placeholder="e.g., 500" required step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="expense-description">Description</label>
-                        <input type="text" id="expense-description" placeholder="e.g., Dinner with friends" required>
-                    </div>
-                     <div class="form-group">
-                        <label for="expense-date">Date</label>
-                        <input type="date" id="expense-date" value="" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="expense-category">Category</label>
-                        <select id="expense-category" required>
-                            <option value="">Select a category</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="primary-btn" id="save-expense-btn">Add Transaction</button>
-                    <button type="button" class="secondary-btn back-to-dashboard-btn">Cancel</button>
-                </form>
-            </section>
-
-            <section id="categories-view" class="view">
-                <h2 class="section-title">Manage Categories</h2>
-                <ul id="category-list" class="category-list">
-                    </ul>
-                <div class="add-category-section">
-                    <input type="text" id="new-category-name" placeholder="New category name" class="new-category-input">
-                    <button id="add-new-category-btn" class="primary-btn">Add Category</button>
-                </div>
-                <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
-            </section>
-
-            <section id="filtered-transactions-view" class="view">
-                <h2 class="section-title">Filtered Transactions</h2>
-                <div class="transaction-filters">
-                    <input type="date" id="filter-start-date" placeholder="From Date">
-                    <input type="date" id="filter-end-date" placeholder="To Date">
-                    <select id="filter-category">
-                        <option value="all">All Categories</option>
-                        </select>
-                    <select id="filter-type">
-                        <option value="all">All Types</option>
-                        <option value="expense">Expense</option>
-                        <option value="income">Income</option>
-                    </select>
-                    <button class="secondary-btn small-btn" id="apply-filter-btn">Apply Filters</button>
-                    <button class="secondary-btn small-btn" id="clear-filter-btn">Clear Filters</button>
-                </div>
-                <ul class="transaction-list" id="filtered-transaction-list">
-                    <li class="no-transactions">Apply filters to see transactions.</li>
-                </ul>
-                <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
-            </section>
-
-            <section id="borrowed-lent-view" class="view">
-                <h2 class="section-title">Borrowed/Lent Money</h2>
-                <div class="summary-cards">
-                    <div class="summary-card owed">
-                        <h3>Money Owed to You</h3>
-                        <p class="amount">₹ <span id="total-lent">0.00</span></p>
-                    </div>
-                    <div class="summary-card owing">
-                        <h3>Money You Owe</h3>
-                        <p class="amount">₹ <span id="total-borrowed">0.00</span></p>
-                    </div>
                 </div>
 
-                <button class="primary-btn" id="add-borrow-lent-btn">Add Record</button>
-
-                <h3 class="subsection-title">All Records</h3>
-                <ul class="borrowed-lent-list" id="borrowed-lent-list">
-                    <li class="no-records">No borrowed/lent records yet.</li>
-                </ul>
-                 <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
-            </section>
-
-            <section id="add-borrow-lent-view" class="view">
-                <h2 class="section-title">Add/Edit Money Record</h2>
-                <form id="borrow-lent-form" class="expense-form">
-                    <input type="hidden" id="borrow-lent-id">
-                    <div class="form-group">
-                        <label for="borrow-lent-type">Record Type</label>
-                        <div class="transaction-type-selector">
-                            <input type="radio" id="type-lent" name="borrow-lent-type" value="lent" checked>
-                            <label for="type-lent">Money Lent</label>
-                            <input type="radio" id="type-borrowed" name="borrow-lent-type" value="borrowed">
-                            <label for="type-borrowed">Money Borrowed</label>
+                <div class="main-content">
+                    <div class="dashboard-header">
+                        <h2>Transactions</h2>
+                        <div class="controls">
+                            <select id="month-filter"></select>
+                            <select id="sort-filter">
+                                <option value="date-desc">Date (Newest)</option>
+                                <option value="date-asc">Date (Oldest)</option>
+                                <option value="amount-desc">Amount (High to Low)</option>
+                                <option value="amount-asc">Amount (Low to High)</option>
+                                <option value="category">Category</option>
+                            </select>
+                            <button id="force-month-btn">Force New Month</button>
+                            <button id="backup-btn">Backup</button>
+                            <input type="file" id="restore-input" accept=".json" style="display: none;">
+                            <button id="restore-btn">Restore</button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="borrow-lent-amount">Amount</label>
-                        <input type="number" id="borrow-lent-amount" placeholder="e.g., 200" required step="0.01">
+                    
+                    <div class="transaction-list-container">
+                        <h3>Transactions for <span id="current-month-display"></span></h3>
+                        <ul id="transaction-list"></ul>
                     </div>
-                    <div class="form-group">
-                        <label for="borrow-lent-person">Person/Party</label>
-                        <input type="text" id="borrow-lent-person" placeholder="e.g., John Doe" required>
-                    </div>
-                     <div class="form-group">
-                        <label for="borrow-lent-date">Date</label>
-                        <input type="date" id="borrow-lent-date" value="" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="borrow-lent-notes">Notes (Optional)</label>
-                        <textarea id="borrow-lent-notes" rows="3" placeholder="e.g., For lunch"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <input type="checkbox" id="borrow-lent-paid">
-                        <label for="borrow-lent-paid">Mark as Paid/Returned</label>
-                    </div>
-                    <button type="submit" class="primary-btn" id="save-borrow-lent-btn">Save Record</button>
-                    <button type="button" class="secondary-btn back-to-borrow-lent-btn">Cancel</button>
-                </form>
-            </section>
 
-            <section id="budget-view" class="view">
-                <h2 class="section-title">Monthly Budget</h2>
-                <div class="budget-controls">
-                    <button id="prev-month-btn" class="icon-btn"><i class="fas fa-chevron-left"></i></button>
-                    <span id="current-budget-month" class="month-display">July 2025</span>
-                    <button id="next-month-btn" class="icon-btn"><i class="fas fa-chevron-right"></i></button>
-                </div>
-
-                <div class="form-group budget-goal-input-group">
-                    <label for="monthly-budget-goal">Set Monthly Budget Goal (₹)</label>
-                    <input type="number" id="monthly-budget-goal" placeholder="e.g., 10000" step="0.01">
-                    <button id="save-budget-goal-btn" class="primary-btn small-btn">Save</button>
-                </div>
-
-                <div class="budget-summary-card">
-                    <div class="summary-item">
-                        <p class="summary-label">Budget Goal</p>
-                        <p class="summary-value budget-goal">₹ <span id="display-budget-goal">0.00</span></p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">Total Expenses</p>
-                        <p class="summary-value total-expenses">₹ <span id="display-total-expenses">0.00</span></p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">Remaining Budget</p>
-                        <p class="summary-value remaining-budget">₹ <span id="display-remaining-budget" class="positive">0.00</span></p>
+                    <div class="month-summary-container">
+                        <h3>Month Summary</h3>
+                        <div id="month-summary"></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="budget-progress-bar-container">
-                    <div class="budget-progress-bar" id="budget-progress-bar"></div>
+            <div id="debts" class="main-section">
+                <h2>Debts</h2>
+                <div class="section-box">
+                    <h3>Add/Track Debt</h3>
+                    <form id="debt-form">
+                        <input type="text" id="debt-description" placeholder="To/From whom?" required>
+                        <input type="number" id="debt-amount" placeholder="Amount" required>
+                        <select id="debt-type">
+                            <option value="owed-to-me">Owed to me</option>
+                            <option value="i-owe">I owe</option>
+                        </select>
+                        <button type="submit">Add Debt</button>
+                    </form>
                 </div>
-                <p class="progress-label" id="budget-progress-label">0% of budget used</p>
-
-                <h3 class="subsection-title">Expenses by Category for this Month</h3>
-                <ul id="budget-category-expenses-list" class="category-summary-list">
-                    <li class="no-categories">No expenses for this month.</li>
-                </ul>
-
-                <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
-            </section>
-
-            <section id="monthly-summary-view" class="view">
-                <h2 class="section-title">Monthly Expense History</h2>
-                <ul id="monthly-summary-list" class="monthly-summary-list">
-                    <li class="no-summaries">No monthly summaries saved yet.</li>
-                </ul>
-                <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
-            </section>
-
-            <section id="backup-view" class="view">
-                <h2 class="section-title">Data Backup & Restore</h2>
-                <div class="backup-restore-actions">
-                    <button class="primary-btn" id="backup-data-btn">
-                        <i class="fas fa-download"></i>
-                        <span>Backup Data</span>
-                    </button>
-                    <button class="secondary-btn" id="restore-data-btn">
-                        <i class="fas fa-upload"></i>
-                        <span>Restore Data</span>
-                    </button>
-                     <button class="secondary-btn" id="force-monthly-summary-btn">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Force Monthly Summary</span>
-                    </button>
+                <div class="section-box">
+                    <h3>Debt List</h3>
+                    <ul id="debt-list"></ul>
                 </div>
-                 <button type="button" class="secondary-btn back-to-dashboard-btn">Back to Dashboard</button>
-            </section>
+            </div>
 
+            <div id="splitwise" class="main-section">
+                <h2>Splitwise</h2>
+                <div class="section-box">
+                    <h3>Split a Bill</h3>
+                    <form id="splitwise-form">
+                        <input type="text" id="bill-description" placeholder="What was the bill for?" required>
+                        <input type="number" id="bill-total" placeholder="Total amount" required>
+                        <input type="text" id="bill-participants" placeholder="Names (comma-separated)" required>
+                        <button type="submit">Split</button>
+                    </form>
+                </div>
+                <div class="section-box">
+                    <h3>Splits History</h3>
+                    <ul id="split-history"></ul>
+                </div>
+            </div>
 
+            <div id="budget" class="main-section">
+                <h2>Budget</h2>
+                <div class="section-box">
+                    <h3>Set Monthly Budget</h3>
+                    <form id="budget-form">
+                        <input type="text" id="budget-category" placeholder="Category (e.g., Food)" required>
+                        <input type="number" id="budget-limit" placeholder="Limit" required>
+                        <button type="submit">Set Budget</button>
+                    </form>
+                </div>
+                <div class="section-box">
+                    <h3>Current Budgets</h3>
+                    <ul id="budget-list"></ul>
+                </div>
+            </div>
+            
+            <div id="calculator-popup" class="popup">
+                <div class="popup-content">
+                    <span class="close-btn">&times;</span>
+                    <h3>Calculator</h3>
+                    <input type="text" id="calc-display" readonly>
+                    <div class="calc-buttons">
+                        <button class="calc-btn">7</button>
+                        <button class="calc-btn">8</button>
+                        <button class="calc-btn">9</button>
+                        <button class="calc-btn operator">+</button>
+                        <button class="calc-btn">4</button>
+                        <button class="calc-btn">5</button>
+                        <button class="calc-btn">6</button>
+                        <button class="calc-btn operator">-</button>
+                        <button class="calc-btn">1</button>
+                        <button class="calc-btn">2</button>
+                        <button class="calc-btn">3</button>
+                        <button class="calc-btn operator">*</button>
+                        <button class="calc-btn">0</button>
+                        <button class="calc-btn">.</button>
+                        <button class="calc-btn equals">=</button>
+                        <button class="calc-btn operator">/</button>
+                        <button class="calc-btn clear">C</button>
+                    </div>
+                </div>
+            </div>
         </main>
-
-        <div id="calculator" class="calculator-container" style="display: none;">
-            <div class="calculator-display">
-                <input type="text" id="calc-output" readonly value="0">
-            </div>
-            <div class="calculator-buttons">
-                <button class="calc-btn clear" data-action="clear">C</button>
-                <button class="calc-btn operator" data-action="divide">/</button>
-                <button class="calc-btn operator" data-action="multiply">*</button>
-                <button class="calc-btn backspace" data-action="backspace"><i class="fas fa-backspace"></i></button>
-
-                <button class="calc-btn number">7</button>
-                <button class="calc-btn number">8</button>
-                <button class="calc-btn number">9</button>
-                <button class="calc-btn operator" data-action="subtract">-</button>
-
-                <button class="calc-btn number">4</button>
-                <button class="calc-btn number">5</button>
-                <button class="calc-btn number">6</button>
-                <button class="calc-btn operator" data-action="add">+</button>
-
-                <button class="calc-btn number">1</button>
-                <button class="calc-btn number">2</button>
-                <button class="calc-btn number">3</button>
-                <button class="calc-btn equals" data-action="equals">=</button>
-
-                <button class="calc-btn number zero">0</button>
-                <button class="calc-btn number decimal">.</button>
-                <button class="calc-btn apply-calc" data-action="apply">Apply</button>
-            </div>
-        </div>
-
-        <nav class="bottom-nav">
-            <button class="nav-item active" data-view="dashboard-view">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </button>
-            <button class="nav-item" data-view="add-expense-view">
-                <i class="fas fa-plus-circle"></i>
-                <span>Add</span>
-            </button>
-            <button class="nav-item" data-view="categories-view">
-                <i class="fas fa-tags"></i>
-                <span>Categories</span>
-            </button>
-            <button class="nav-item" data-view="filtered-transactions-view">
-                <i class="fas fa-filter"></i>
-                <span>Filter</span>
-            </button>
-            <button class="nav-item" data-view="borrowed-lent-view">
-                <i class="fas fa-hand-holding-dollar"></i>
-                <span>Debts</span>
-            </button>
-            <button class="nav-item" data-view="budget-view">
-                <i class="fas fa-chart-pie"></i>
-                <span>Budget</span>
-            </button>
-            <button class="nav-item" data-view="monthly-summary-view">
-                <i class="fas fa-calendar-alt"></i>
-                <span>History</span>
-            </button>
-            <button class="nav-item" data-view="backup-view">
-                <i class="fas fa-database"></i>
-                <span>Backup</span>
-            </button>
-        </nav>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
-            const appContainer = document.querySelector('.app-container');
-            const mainContent = document.querySelector('.main-content');
-            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-            const views = document.querySelectorAll('.view');
-            const backToDashboardBtns = document.querySelectorAll('.back-to-dashboard-btn');
-            const quickActionBtns = document.querySelectorAll('.quick-actions .action-btn'); // Only "Add New" remains
-
-            // Dashboard elements
-            const balanceAmountSpan = document.querySelector('.balance-amount span');
-            const recentTransactionList = document.getElementById('recent-transaction-list');
-            const noRecentTransactionsMessage = recentTransactionList.querySelector('.no-transactions');
-
-            // Monthly Summaries elements
-            const monthlySummaryList = document.getElementById('monthly-summary-list');
-            const noSummariesMessage = monthlySummaryList.querySelector('.no-summaries');
-
-            // Add Transaction elements (formerly Add Expense)
-            const transactionForm = document.getElementById('expense-form'); // Retain ID for now
-            const transactionIdInput = document.getElementById('expense-id'); // For future edit functionality
-            const transactionTypeRadios = document.querySelectorAll('input[name="transaction-type"]');
-            const transactionAmountInput = document.getElementById('expense-amount');
-            const transactionDescriptionInput = document.getElementById('expense-description');
-            const transactionDateInput = document.getElementById('expense-date');
-            const transactionCategorySelect = document.getElementById('expense-category');
-            const saveTransactionBtn = document.getElementById('save-expense-btn'); // Retain ID for now
-
-            // Categories elements
-            const categoryListUl = document.getElementById('category-list');
-            const newCategoryInput = document.getElementById('new-category-name');
-            const addNewCategoryBtn = document.getElementById('add-new-category-btn');
-
-            // Filtered Transactions elements
-            const filteredTransactionList = document.getElementById('filtered-transaction-list');
-            const noFilteredTransactionsMessage = filteredTransactionList.querySelector('.no-transactions');
-            const filterStartDateInput = document.getElementById('filter-start-date');
-            const filterEndDateInput = document.getElementById('filter-end-date');
-            const filterCategorySelect = document.getElementById('filter-category');
-            const filterTypeSelect = document.getElementById('filter-type');
-            const applyFilterBtn = document.getElementById('apply-filter-btn');
-            const clearFilterBtn = document.getElementById('clear-filter-btn');
-
-            // Borrowed/Lent elements
-            const totalLentSpan = document.getElementById('total-lent');
-            const totalBorrowedSpan = document.getElementById('total-borrowed');
-            const addBorrowLentBtn = document.getElementById('add-borrow-lent-btn');
-            const borrowedLentListUl = document.getElementById('borrowed-lent-list');
-            const noBorrowedLentRecordsMessage = borrowedLentListUl.querySelector('.no-records');
-
-            // Add/Edit Borrowed/Lent Form elements
-            const borrowLentForm = document.getElementById('borrow-lent-form');
-            const borrowLentIdInput = document.getElementById('borrow-lent-id');
-            const borrowLentTypeRadios = document.querySelectorAll('input[name="borrow-lent-type"]');
-            const borrowLentAmountInput = document.getElementById('borrow-lent-amount');
-            const borrowLentPersonInput = document.getElementById('borrow-lent-person');
-            const borrowLentDateInput = document.getElementById('borrow-lent-date');
-            const borrowLentNotesInput = document.getElementById('borrow-lent-notes');
-            const borrowLentPaidCheckbox = document.getElementById('borrow-lent-paid');
-            const saveBorrowLentBtn = document.getElementById('save-borrow-lent-btn');
-            const backToBorrowLentBtn = document.querySelector('#add-borrow-lent-view .back-to-borrow-lent-btn'); // Specific back button for borrow/lent form
-
-            // Budget Section Elements
-            const prevMonthBtn = document.getElementById('prev-month-btn');
-            const nextMonthBtn = document.getElementById('next-month-btn');
-            const currentBudgetMonthDisplay = document.getElementById('current-budget-month');
-            const monthlyBudgetGoalInput = document.getElementById('monthly-budget-goal');
-            const saveBudgetGoalBtn = document.getElementById('save-budget-goal-btn');
-            const displayBudgetGoal = document.getElementById('display-budget-goal');
-            const displayTotalExpenses = document.getElementById('display-total-expenses');
-            const displayRemainingBudget = document.getElementById('display-remaining-budget');
-            const budgetProgressBar = document.getElementById('budget-progress-bar');
-            const budgetProgressLabel = document.getElementById('budget-progress-label');
-            const budgetCategoryExpensesList = document.getElementById('budget-category-expenses-list');
-            const noBudgetCategoryExpensesMessage = budgetCategoryExpensesList.querySelector('.no-categories');
-
-            // Theme toggle
-            const themeToggleBtn = document.getElementById('themeToggle');
-
-            // Calculator Elements
-            const calculatorToggleBtn = document.getElementById('calculatorToggle');
-            const calculatorContainer = document.getElementById('calculator');
-            const calcOutput = document.getElementById('calc-output');
-            const calcButtons = calculatorContainer.querySelector('.calculator-buttons');
-            let currentInput = '0';
-            let firstOperand = null;
-            let operator = null;
-            let waitingForSecondOperand = false;
-
-            // Backup/Restore buttons (moved to #backup-view)
-            const backupDataBtn = document.getElementById('backup-data-btn');
-            const restoreDataBtn = document.getElementById('restore-data-btn');
-            const forceMonthlySummaryBtn = document.getElementById('force-monthly-summary-btn');
-
-            // --- Data Storage (Using localStorage) ---
-            let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-            let categories = JSON.parse(localStorage.getItem('categories')) || ['Food', 'Transport', 'Study', 'Entertainment', 'Rent', 'Utilities', 'Shopping', 'Others'];
-            let borrowedLentRecords = JSON.parse(localStorage.getItem('borrowedLentRecords')) || [];
-            let currentTheme = localStorage.getItem('theme') || 'light';
-            let monthlyBudgets = JSON.parse(localStorage.getItem('monthlyBudgets')) || {};
-            let currentBudgetMonth = new Date(); // Tracks the month currently displayed in the budget section
-            let monthlySummaries = JSON.parse(localStorage.getItem('monthlySummaries')) || [];
-
-            // --- Global Filtering State for the Filtered Transactions Section ---
-            let currentFilter = { startDate: null, endDate: null, category: 'all', type: 'all' };
-
-            // --- Historical Transaction View State ---
-            let currentHistoricalTransactions = [];
-            let currentHistoricalMonthYear = '';
-            
-            // --- Utility Functions ---
-            function generateId() {
-                return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-            }
-
-            function saveData() {
-                localStorage.setItem('transactions', JSON.stringify(transactions));
-                localStorage.setItem('categories', JSON.stringify(categories));
-                localStorage.setItem('borrowedLentRecords', JSON.stringify(borrowedLentRecords));
-                localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
-                localStorage.setItem('monthlySummaries', JSON.stringify(monthlySummaries));
-            }
-
-            function formatDate(dateString) {
-                const options = { year: 'numeric', month: 'short', day: 'numeric' };
-                return new Date(dateString).toLocaleDateString('en-US', options);
-            }
-
-            function formatCurrency(amount) {
-                return parseFloat(amount).toFixed(2);
-            }
-
-            // Function to render transactions on the dashboard
-            function renderTransactions() {
-                recentTransactionList.innerHTML = '';
-                const recentTransactions = transactions.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
-                if (recentTransactions.length === 0) {
-                    noRecentTransactionsMessage.style.display = 'block';
-                } else {
-                    noRecentTransactionsMessage.style.display = 'none';
-                    recentTransactions.forEach(t => {
-                        const listItem = document.createElement('li');
-                        listItem.classList.add('transaction-item', t.type);
-                        listItem.dataset.id = t.id;
-                        listItem.innerHTML = `
-                            <div class="transaction-info">
-                                <p class="transaction-description">${t.description}</p>
-                                <p class="transaction-date">${formatDate(t.date)}</p>
-                                <p class="transaction-category">${t.category}</p>
-                            </div>
-                            <div class="transaction-amount">
-                                <span>₹ ${t.type === 'expense' ? '-' : '+'}${formatCurrency(t.amount)}</span>
-                                <div class="transaction-actions">
-                                    <i class="fas fa-edit edit-btn"></i>
-                                    <i class="fas fa-trash-alt delete-btn"></i>
-                                </div>
-                            </div>
-                        `;
-                        recentTransactionList.appendChild(listItem);
-                    });
-                }
-            }
-
-            // Function to update the balance
-            function updateBalance() {
-                const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-                const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-                const balance = totalIncome - totalExpenses;
-                balanceAmountSpan.textContent = formatCurrency(balance);
-                balanceAmountSpan.classList.toggle('negative', balance < 0);
-                updateBudgetSummary(); // Update the budget summary whenever the balance changes
-            }
-
-            // Function to reset the transaction form
-            function resetTransactionForm() {
-                transactionForm.reset();
-                transactionIdInput.value = '';
-                saveTransactionBtn.textContent = 'Add Transaction';
-                // Set the date input to the current date
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = (today.getMonth() + 1).toString().padStart(2, '0');
-                const day = today.getDate().toString().padStart(2, '0');
-                transactionDateInput.value = `${year}-${month}-${day}`;
-            }
-
-            // Function to add a new transaction or update an existing one
-            function addOrUpdateTransaction(e) {
-                e.preventDefault();
-                const id = transactionIdInput.value;
-                const type = document.querySelector('input[name="transaction-type"]:checked').value;
-                const amount = parseFloat(transactionAmountInput.value);
-                const description = transactionDescriptionInput.value;
-                const date = transactionDateInput.value;
-                const category = transactionCategorySelect.value;
-
-                if (amount <= 0 || !description || !date || !category) {
-                    alert('Please fill out all fields with valid data.');
-                    return;
-                }
-
-                const isHistoricalEdit = sessionStorage.getItem('isHistoricalEdit') === 'true';
-
-                if (isHistoricalEdit) {
-                    const historicalMonthYear = sessionStorage.getItem('historicalMonthYear');
-                    const summary = monthlySummaries.find(s => s.monthYear === historicalMonthYear);
-                    if (!summary) return;
-
-                    const transactionIndex = summary.transactions.findIndex(t => t.id === id);
-                    if (transactionIndex === -1) return;
-
-                    const oldTransaction = summary.transactions[transactionIndex];
-                    const newTransaction = { ...oldTransaction, type, amount, description, date, category };
-                    
-                    // Recalculate summary totals based on the change
-                    if (oldTransaction.type === 'expense') {
-                        summary.totalExpenses -= oldTransaction.amount;
-                        summary.finalBalance += oldTransaction.amount;
-                    } else {
-                        summary.totalIncome -= oldTransaction.amount;
-                        summary.finalBalance -= oldTransaction.amount;
-                    }
-                    
-                    if (newTransaction.type === 'expense') {
-                        summary.totalExpenses += newTransaction.amount;
-                        summary.finalBalance -= newTransaction.amount;
-                    } else {
-                        summary.totalIncome += newTransaction.amount;
-                        summary.finalBalance += newTransaction.amount;
-                    }
-
-                    // Update the transaction in the summary
-                    summary.transactions[transactionIndex] = newTransaction;
-
-                    // Clear the session storage flags
-                    sessionStorage.removeItem('isHistoricalEdit');
-                    sessionStorage.removeItem('historicalMonthYear');
-
-                    saveData();
-                    displayMonthlySummaries();
-                    showMonthlyTransactions(historicalMonthYear);
-                    switchView('filtered-transactions-view');
-                } else if (id) {
-                    // Edit existing transaction (for current month)
-                    const index = transactions.findIndex(t => t.id === id);
-                    if (index !== -1) {
-                        transactions[index] = { ...transactions[index], type, amount, description, date, category };
-                    }
-                    saveData();
-                    resetTransactionForm();
-                    switchView('dashboard-view');
-                } else {
-                    // Add new transaction
-                    const newTransaction = { id: generateId(), type, amount, description, date, category };
-                    transactions.push(newTransaction);
-                    saveData();
-                    resetTransactionForm();
-                    switchView('dashboard-view');
-                }
-            }
-
-
-            // Function to display categories in the select dropdown and on the categories page
-            function displayCategories() {
-                // Clear existing options, but keep the default one
-                transactionCategorySelect.innerHTML = '<option value="">Select a category</option>';
-                filterCategorySelect.innerHTML = '<option value="all">All Categories</option>';
-                categoryListUl.innerHTML = '';
-                
-                if (categories.length > 0) {
-                    categories.forEach(cat => {
-                        // Add to transaction form dropdown
-                        const option1 = document.createElement('option');
-                        option1.value = cat;
-                        option1.textContent = cat;
-                        transactionCategorySelect.appendChild(option1);
-
-                        // Add to filter dropdown
-                        const option2 = document.createElement('option');
-                        option2.value = cat;
-                        option2.textContent = cat;
-                        filterCategorySelect.appendChild(option2);
-
-                        // Add to categories list for editing/deleting
-                        const li = document.createElement('li');
-                        li.className = 'category-item';
-                        li.innerHTML = `
-                            <span>${cat}</span>
-                            <i class="fas fa-trash-alt delete-category-btn" data-category="${cat}"></i>
-                        `;
-                        categoryListUl.appendChild(li);
-                    });
-                }
-            }
-
-            // Function to render filtered transactions
-            function displayFilteredTransactions(monthYear = null) {
-                filteredTransactionList.innerHTML = '';
-                noFilteredTransactionsMessage.style.display = 'none';
-
-                // Check if we are displaying historical transactions
-                const sourceTransactions = monthYear ? currentHistoricalTransactions : transactions;
-
-                let filtered = [...sourceTransactions];
-                
-                // The rest of your filtering logic remains the same
-                if (currentFilter.startDate) {
-                    filtered = filtered.filter(t => new Date(t.date) >= new Date(currentFilter.startDate));
-                }
-                if (currentFilter.endDate) {
-                    filtered = filtered.filter(t => new Date(t.date) <= new Date(currentFilter.endDate));
-                }
-                if (currentFilter.category !== 'all') {
-                    filtered = filtered.filter(t => t.category === currentFilter.category);
-                }
-                if (currentFilter.type !== 'all') {
-                    filtered = filtered.filter(t => t.type === currentFilter.type);
-                }
-
-                if (filtered.length === 0) {
-                    noFilteredTransactionsMessage.style.display = 'block';
-                    return;
-                }
-
-                filtered.forEach(t => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('transaction-item', t.type);
-                    listItem.dataset.id = t.id;
-                    // Make sure to add the monthYear data attribute only when it's a historical view
-                    if (monthYear) {
-                        listItem.dataset.monthYear = monthYear;
-                    }
-                    listItem.innerHTML = `
-                        <div class="transaction-info">
-                            <p class="transaction-description">${t.description}</p>
-                            <p class="transaction-date">${formatDate(t.date)}</p>
-                            <p class="transaction-category">${t.category}</p>
-                        </div>
-                        <div class="transaction-amount">
-                            <span>₹ ${t.type === 'expense' ? '-' : '+'}${formatCurrency(t.amount)}</span>
-                            <div class="transaction-actions">
-                                <i class="fas fa-edit edit-btn"></i>
-                                <i class="fas fa-trash-alt delete-btn"></i>
-                                <i class="fas fa-arrows-turn-to-box move-btn"></i>
-                            </div>
-                        </div>
-                    `;
-                    filteredTransactionList.appendChild(listItem);
-                });
-            }
-
-            // Function to apply filters
-            function applyFilters() {
-                currentFilter.startDate = filterStartDateInput.value;
-                currentFilter.endDate = filterEndDateInput.value;
-                currentFilter.category = filterCategorySelect.value;
-                currentFilter.type = filterTypeSelect.value;
-                // Pass the historical month year if available, otherwise pass null
-                displayFilteredTransactions(currentHistoricalMonthYear || null);
-            }
-
-            // Function to clear filters
-            function clearFilters() {
-                filterStartDateInput.value = '';
-                filterEndDateInput.value = '';
-                filterCategorySelect.value = 'all';
-                filterTypeSelect.value = 'all';
-                currentFilter = { startDate: null, endDate: null, category: 'all', type: 'all' };
-                
-                // Clear historical view state
-                currentHistoricalTransactions = [];
-                currentHistoricalMonthYear = '';
-                
-                // Display the current month's transactions
-                displayFilteredTransactions();
-            }
-
-
-            // Borrowed/Lent Records
-            function renderBorrowedLentRecords() {
-                borrowedLentListUl.innerHTML = '';
-                let totalLent = 0;
-                let totalBorrowed = 0;
-
-                if (borrowedLentRecords.length === 0) {
-                    noBorrowedLentRecordsMessage.style.display = 'block';
-                } else {
-                    noBorrowedLentRecordsMessage.style.display = 'none';
-                    borrowedLentRecords.forEach(record => {
-                        const listItem = document.createElement('li');
-                        listItem.classList.add('borrowed-lent-item', record.type);
-                        if (record.paid) listItem.classList.add('paid');
-                        listItem.dataset.id = record.id;
-                        listItem.innerHTML = `
-                            <div class="record-info">
-                                <p class="record-description">${record.person}</p>
-                                <p class="record-date">${formatDate(record.date)}</p>
-                                <p class="record-notes">${record.notes}</p>
-                            </div>
-                            <div class="record-amount">
-                                <span>₹ ${formatCurrency(record.amount)}</span>
-                                <div class="record-actions">
-                                    <i class="fas fa-edit edit-borrow-lent-btn"></i>
-                                    <i class="fas fa-trash-alt delete-borrow-lent-btn"></i>
-                                    ${!record.paid ? '<i class="fas fa-check mark-paid-btn"></i>' : ''}
-                                </div>
-                            </div>
-                        `;
-                        borrowedLentListUl.appendChild(listItem);
-
-                        if (record.type === 'lent' && !record.paid) totalLent += record.amount;
-                        if (record.type === 'borrowed' && !record.paid) totalBorrowed += record.amount;
-                    });
-                }
-                totalLentSpan.textContent = formatCurrency(totalLent);
-                totalBorrowedSpan.textContent = formatCurrency(totalBorrowed);
-            }
-
-            function resetBorrowLentForm() {
-                borrowLentForm.reset();
-                borrowLentIdInput.value = '';
-                saveBorrowLentBtn.textContent = 'Save Record';
-                document.getElementById('type-lent').checked = true;
-            }
-
-            // Budget Functions
-            function updateBudgetSummary() {
-                const monthKey = `${currentBudgetMonth.getFullYear()}-${currentBudgetMonth.getMonth()}`;
-                const budgetData = monthlyBudgets[monthKey] || { goal: 0 };
-                const transactionsForMonth = transactions.filter(t => {
-                    const tDate = new Date(t.date);
-                    return tDate.getFullYear() === currentBudgetMonth.getFullYear() && tDate.getMonth() === currentBudgetMonth.getMonth();
-                });
-
-                const totalExpenses = transactionsForMonth.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-                const remainingBudget = budgetData.goal - totalExpenses;
-                const percentUsed = budgetData.goal > 0 ? (totalExpenses / budgetData.goal) * 100 : 0;
-
-                currentBudgetMonthDisplay.textContent = new Date(currentBudgetMonth.getFullYear(), currentBudgetMonth.getMonth()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                monthlyBudgetGoalInput.value = budgetData.goal > 0 ? budgetData.goal : '';
-                displayBudgetGoal.textContent = formatCurrency(budgetData.goal);
-                displayTotalExpenses.textContent = formatCurrency(totalExpenses);
-                displayRemainingBudget.textContent = formatCurrency(remainingBudget);
-                displayRemainingBudget.className = `summary-value remaining-budget ${remainingBudget < 0 ? 'negative' : 'positive'}`;
-                
-                budgetProgressBar.style.width = `${Math.min(percentUsed, 100)}%`;
-                budgetProgressBar.classList.toggle('over-budget', percentUsed > 100);
-                budgetProgressLabel.textContent = `${Math.round(percentUsed)}% of budget used`;
-
-                displayBudgetCategoryExpenses(transactionsForMonth);
-            }
-            
-            function displayBudgetCategoryExpenses(transactionsForMonth) {
-                budgetCategoryExpensesList.innerHTML = '';
-                const expensesByCategory = transactionsForMonth.reduce((acc, t) => {
-                    if (t.type === 'expense') {
-                        acc[t.category] = (acc[t.category] || 0) + t.amount;
-                    }
-                    return acc;
-                }, {});
-
-                if (Object.keys(expensesByCategory).length === 0) {
-                    const noCategoriesLi = document.createElement('li');
-                    noCategoriesLi.className = 'no-categories';
-                    noCategoriesLi.textContent = 'No expenses for this month.';
-                    budgetCategoryExpensesList.appendChild(noCategoriesLi);
-                    return;
-                }
-
-                for (const category in expensesByCategory) {
-                    const li = document.createElement('li');
-                    li.className = 'category-summary-item';
-                    li.innerHTML = `
-                        <span>${category}</span>
-                        <span>₹ ${formatCurrency(expensesByCategory[category])}</span>
-                    `;
-                    budgetCategoryExpensesList.appendChild(li);
-                }
-            }
-
-
-            // Monthly Summary Functions
-            function getMonthYearString(date) {
-                const options = { month: 'long', year: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
-            }
-
-            function checkAndSaveMonthlySummary() {
-                const now = new Date();
-                const lastCheckDateString = localStorage.getItem('lastCheckDate');
-                let lastCheckDate = lastCheckDateString ? new Date(lastCheckDateString) : now;
-
-                if (now.getMonth() !== lastCheckDate.getMonth() || now.getFullYear() !== lastCheckDate.getFullYear()) {
-                    // New month detected, save a summary for the previous month
-                    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                    const prevMonthKey = getMonthYearString(prevMonth);
-
-                    const transactionsToSummarize = transactions;
-                    
-                    const totalIncome = transactionsToSummarize.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-                    const totalExpenses = transactionsToSummarize.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-                    const finalBalance = totalIncome - totalExpenses;
-
-                    const newSummary = {
-                        monthYear: prevMonthKey,
-                        totalIncome,
-                        totalExpenses,
-                        finalBalance,
-                        transactions: transactionsToSummarize,
-                    };
-                    
-                    monthlySummaries.unshift(newSummary);
-                    transactions = []; // Reset transactions for the new month
-                    
-                    saveData();
-                    renderTransactions();
-                    updateBalance();
-                    displayMonthlySummaries();
-                }
-
-                localStorage.setItem('lastCheckDate', now.toISOString());
-            }
-
-            // Function to render monthly summaries
-            function displayMonthlySummaries() {
-                monthlySummaryList.innerHTML = '';
-                if (monthlySummaries.length === 0) {
-                    noSummariesMessage.style.display = 'block';
-                    return;
-                }
-                noSummariesMessage.style.display = 'none';
-
-                monthlySummaries.forEach(summary => {
-                    const li = document.createElement('li');
-                    li.className = 'monthly-summary-item clickable-summary';
-                    li.dataset.monthYear = summary.monthYear;
-                    li.innerHTML = `
-                        <div class="month-header">
-                            <h3>${summary.monthYear}</h3>
-                            <span class="month-total">Total Expenses: ₹ ${summary.totalExpenses.toFixed(2)}</span>
-                        </div>
-                        <div class="monthly-summary-details">
-                            <p>Total Income: ₹ ${summary.totalIncome.toFixed(2)}</p>
-                            <p>Final Balance: ₹ ${summary.finalBalance.toFixed(2)}</p>
-                        </div>
-                    `;
-                    monthlySummaryList.appendChild(li);
-                });
-            }
-
-            // Function to show transactions for a specific month from the summary
-            function showMonthlyTransactions(monthYearString) {
-                const summary = monthlySummaries.find(s => s.monthYear === monthYearString);
-                if (!summary) return;
-
-                currentHistoricalTransactions = summary.transactions;
-                currentHistoricalMonthYear = monthYearString;
-
-                // Parse the month and year from the string
-                const [monthName, year] = monthYearString.split(' ');
-                const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth();
-                
-                const startDate = new Date(year, monthIndex, 1);
-                const endDate = new Date(year, monthIndex + 1, 0); // Last day of the month
-
-                // Format dates to YYYY-MM-DD for the filter inputs
-                const formattedStartDate = startDate.toISOString().split('T')[0];
-                const formattedEndDate = endDate.toISOString().split('T')[0];
-
-                // Set the filter inputs and state
-                filterStartDateInput.value = formattedStartDate;
-                filterEndDateInput.value = formattedEndDate;
-                filterCategorySelect.value = 'all';
-                filterTypeSelect.value = 'all';
-
-                // **BUG FIX:** Call applyFilters() to update the currentFilter object
-                applyFilters();
-
-                switchView('filtered-transactions-view');
-            }
-
-            // Function to delete a historical transaction
-            function deleteHistoricalTransaction(transactionId) {
-                const summaryIndex = monthlySummaries.findIndex(s => s.monthYear === currentHistoricalMonthYear);
-                if (summaryIndex === -1) return;
-
-                const summary = monthlySummaries[summaryIndex];
-                const originalTransactionIndex = summary.transactions.findIndex(t => t.id === transactionId);
-                if (originalTransactionIndex === -1) return;
-
-                const deletedTransaction = summary.transactions[originalTransactionIndex];
-                
-                // Update summary totals
-                if (deletedTransaction.type === 'expense') {
-                    summary.totalExpenses -= deletedTransaction.amount;
-                    summary.finalBalance += deletedTransaction.amount;
-                } else {
-                    summary.totalIncome -= deletedTransaction.amount;
-                    summary.finalBalance -= deletedTransaction.amount;
-                }
-
-                // Remove the transaction from the summary
-                summary.transactions.splice(originalTransactionIndex, 1);
-                
-                saveData();
-                displayMonthlySummaries();
-                showMonthlyTransactions(currentHistoricalMonthYear); // Re-render the view
-            }
-
-            // Function to move a historical transaction to the current month
-            function moveHistoricalTransaction(transactionId) {
-                const summaryIndex = monthlySummaries.findIndex(s => s.monthYear === currentHistoricalMonthYear);
-                if (summaryIndex === -1) return;
-
-                const summary = monthlySummaries[summaryIndex];
-                const transactionIndex = summary.transactions.findIndex(t => t.id === transactionId);
-                if (transactionIndex === -1) return;
-
-                const transactionToMove = summary.transactions[transactionIndex];
-                
-                // 1. Update the historical summary totals
-                if (transactionToMove.type === 'expense') {
-                    summary.totalExpenses -= transactionToMove.amount;
-                    summary.finalBalance += transactionToMove.amount;
-                } else {
-                    summary.totalIncome -= transactionToMove.amount;
-                    summary.finalBalance -= transactionToMove.amount;
-                }
-
-                // 2. Remove the transaction from the historical summary
-                summary.transactions.splice(transactionIndex, 1);
-                
-                // 3. Add the transaction to the current month's list
-                transactions.push(transactionToMove);
-
-                // 4. Update the stored data and views
-                saveData();
-                displayMonthlySummaries(); // Refresh the monthly summary list
-                showMonthlyTransactions(currentHistoricalMonthYear); // Re-render the historical view
-                updateBalance(); // Update the main dashboard balance
-                renderTransactions(); // Update the main dashboard transactions
-            }
-
-            // Function to edit a historical transaction
-            function editHistoricalTransaction(transactionId) {
-                const summary = monthlySummaries.find(s => s.monthYear === currentHistoricalMonthYear);
-                if (!summary) return;
-
-                const transactionToEdit = summary.transactions.find(t => t.id === transactionId);
-                if (!transactionToEdit) return;
-
-                // Set a flag to indicate we're editing a historical transaction
-                sessionStorage.setItem('isHistoricalEdit', 'true');
-                sessionStorage.setItem('historicalMonthYear', currentHistoricalMonthYear);
-
-                // Pre-fill the form with the transaction details
-                transactionIdInput.value = transactionToEdit.id;
-                document.getElementById(`type-${transactionToEdit.type}`).checked = true;
-                transactionAmountInput.value = transactionToEdit.amount;
-                transactionDescriptionInput.value = transactionToEdit.description;
-                transactionDateInput.value = transactionToEdit.date;
-                transactionCategorySelect.value = transactionToEdit.category;
-                saveTransactionBtn.textContent = 'Save Changes';
-                
-                // Switch to the form view
-                switchView('add-expense-view');
-            }
-
-
-            // Theme Functions
-            function applyTheme(theme) {
-                appContainer.className = `app-container ${theme}-theme`;
-                if (theme === 'dark') {
-                    themeToggleBtn.classList.replace('fa-sun', 'fa-moon');
-                } else {
-                    themeToggleBtn.classList.replace('fa-moon', 'fa-sun');
-                }
-            }
-
-            function toggleTheme() {
-                currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-                localStorage.setItem('theme', currentTheme);
-                applyTheme(currentTheme);
-            }
-
-            // Calculator Functions
-            function handleCalculatorInput(e) {
-                const button = e.target.closest('.calc-btn');
-                if (!button) return;
-
-                const value = button.textContent;
-                const action = button.dataset.action;
-
-                if (action === 'clear') {
-                    currentInput = '0';
-                    firstOperand = null;
-                    operator = null;
-                    waitingForSecondOperand = false;
-                } else if (action === 'backspace') {
-                    currentInput = currentInput.slice(0, -1) || '0';
-                } else if (action === 'apply') {
-                    if (!isNaN(parseFloat(currentInput))) {
-                        transactionAmountInput.value = parseFloat(currentInput);
-                        calculatorContainer.style.display = 'none';
-                    }
-                    return;
-                } else if (action === 'equals') {
-                    if (firstOperand !== null && operator !== null && !waitingForSecondOperand) {
-                        currentInput = String(operate(firstOperand, parseFloat(currentInput), operator));
-                        firstOperand = null;
-                        operator = null;
-                        waitingForSecondOperand = true;
-                    }
-                } else if (action === 'add' || action === 'subtract' || action === 'multiply' || action === 'divide') {
-                    if (firstOperand === null) {
-                        firstOperand = parseFloat(currentInput);
-                    } else if (operator) {
-                        firstOperand = operate(firstOperand, parseFloat(currentInput), operator);
-                    }
-                    operator = action;
-                    waitingForSecondOperand = true;
-                } else if (button.classList.contains('number')) {
-                    if (waitingForSecondOperand) {
-                        currentInput = value;
-                        waitingForSecondOperand = false;
-                    } else {
-                        currentInput = currentInput === '0' ? value : currentInput + value;
-                    }
-                }
-
-                calcOutput.value = currentInput;
-            }
-            
-            function operate(a, b, op) {
-                if (op === 'add') return a + b;
-                if (op === 'subtract') return a - b;
-                if (op === 'multiply') return a * b;
-                if (op === 'divide') return a / b;
-            }
-
-
-            // --- Core Logic & Event Listeners ---
-            function switchView(viewId) {
-                views.forEach(view => {
-                    view.classList.remove('active');
-                });
-                document.getElementById(viewId).classList.add('active');
-
-                // Update active nav item
-                navItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.view === viewId) {
-                        item.classList.add('active');
-                    }
-                });
-
-                // Re-render relevant view content on switch
-                if (viewId === 'dashboard-view') {
-                    renderTransactions();
-                    updateBalance();
-                } else if (viewId === 'add-expense-view') {
-                     // **BUG FIX:** Reset the transaction form when navigating to this view
-                     resetTransactionForm();
-                } else if (viewId === 'categories-view') {
-                    displayCategories();
-                } else if (viewId === 'filtered-transactions-view') {
-                    // **NEW FIX:** Clear historical state and filters when navigating to this view
-                    // This prevents old data from persisting when the user navigates directly
-                    if (currentHistoricalMonthYear === '') {
-                        clearFilters();
-                    }
-                } else if (viewId === 'borrowed-lent-view') {
-                    renderBorrowedLentRecords();
-                } else if (viewId === 'budget-view') {
-                    updateBudgetSummary();
-                } else if (viewId === 'monthly-summary-view') {
-                    displayMonthlySummaries();
-                }
-            }
-            
-            // --- Event Listeners ---
-            navItems.forEach(item => item.addEventListener('click', (e) => switchView(e.currentTarget.dataset.view)));
-
-            backToDashboardBtns.forEach(btn => btn.addEventListener('click', () => switchView('dashboard-view')));
-            quickActionBtns.forEach(btn => btn.addEventListener('click', (e) => switchView(e.currentTarget.dataset.view)));
-
-            // Form submission listener
-            transactionForm.addEventListener('submit', addOrUpdateTransaction);
-            saveTransactionBtn.addEventListener('click', addOrUpdateTransaction);
-
-            // Edit and Delete listeners for dashboard transactions
-            recentTransactionList.addEventListener('click', (e) => {
-                const clickedItem = e.target.closest('.transaction-item');
-                if (!clickedItem) return;
-
-                const transactionId = clickedItem.dataset.id;
-                
-                if (e.target.classList.contains('edit-btn')) {
-                    const transactionToEdit = transactions.find(t => t.id === transactionId);
-                    if (transactionToEdit) {
-                        transactionIdInput.value = transactionToEdit.id;
-                        document.getElementById(`type-${transactionToEdit.type}`).checked = true;
-                        transactionAmountInput.value = transactionToEdit.amount;
-                        transactionDescriptionInput.value = transactionToEdit.description;
-                        transactionDateInput.value = transactionToEdit.date;
-                        transactionCategorySelect.value = transactionToEdit.category;
-                        saveTransactionBtn.textContent = 'Save Changes';
-                        switchView('add-expense-view');
-                    }
-                } else if (e.target.classList.contains('delete-btn')) {
-                    if (window.confirm("Are you sure you want to delete this transaction?")) {
-                        transactions = transactions.filter(t => t.id !== transactionId);
-                        saveData();
-                        renderTransactions();
-                        updateBalance();
-                    }
-                }
-            });
-
-            // Category listeners
-            addNewCategoryBtn.addEventListener('click', () => {
-                const newCat = newCategoryInput.value.trim();
-                if (newCat && !categories.includes(newCat)) {
-                    categories.push(newCat);
-                    saveData();
-                    displayCategories();
-                    newCategoryInput.value = '';
-                }
-            });
-            categoryListUl.addEventListener('click', (e) => {
-                if (e.target.classList.contains('delete-category-btn')) {
-                    const catToDelete = e.target.dataset.category;
-                    if (window.confirm(`Are you sure you want to delete the category "${catToDelete}"? This will not delete any transactions.`)) {
-                        categories = categories.filter(cat => cat !== catToDelete);
-                        saveData();
-                        displayCategories();
-                    }
-                }
-            });
-
-            // Filter listeners
-            applyFilterBtn.addEventListener('click', applyFilters);
-            clearFilterBtn.addEventListener('click', clearFilters);
-
-            // Borrowed/Lent listeners
-            addBorrowLentBtn.addEventListener('click', () => {
-                switchView('add-borrow-lent-view');
-                resetBorrowLentForm();
-            });
-            backToBorrowLentBtn.addEventListener('click', () => switchView('borrowed-lent-view'));
-            borrowLentForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const id = borrowLentIdInput.value;
-                const type = document.querySelector('input[name="borrow-lent-type"]:checked').value;
-                const amount = parseFloat(borrowLentAmountInput.value);
-                const person = borrowLentPersonInput.value.trim();
-                const date = borrowLentDateInput.value;
-                const notes = borrowLentNotesInput.value.trim();
-                const paid = borrowLentPaidCheckbox.checked;
-
-                if (amount <= 0 || !person || !date) {
-                    alert('Please fill out all fields with valid data.');
-                    return;
-                }
-
-                if (id) {
-                    const index = borrowedLentRecords.findIndex(r => r.id === id);
-                    if (index !== -1) {
-                        borrowedLentRecords[index] = { ...borrowedLentRecords[index], type, amount, person, date, notes, paid };
-                    }
-                } else {
-                    const newRecord = { id: generateId(), type, amount, person, date, notes, paid };
-                    borrowedLentRecords.push(newRecord);
-                }
-                saveData();
-                resetBorrowLentForm();
-                switchView('borrowed-lent-view');
-            });
-            borrowedLentListUl.addEventListener('click', (e) => {
-                const clickedItem = e.target.closest('.borrowed-lent-item');
-                if (!clickedItem) return;
-                
-                const recordId = clickedItem.dataset.id;
-                
-                if (e.target.classList.contains('edit-borrow-lent-btn')) {
-                    const recordToEdit = borrowedLentRecords.find(r => r.id === recordId);
-                    if (recordToEdit) {
-                        borrowLentIdInput.value = recordToEdit.id;
-                        document.getElementById(`type-${recordToEdit.type}`).checked = true;
-                        borrowLentAmountInput.value = recordToEdit.amount;
-                        borrowLentPersonInput.value = recordToEdit.person;
-                        borrowLentDateInput.value = recordToEdit.date;
-                        borrowLentNotesInput.value = recordToEdit.notes;
-                        borrowLentPaidCheckbox.checked = recordToEdit.paid;
-                        saveBorrowLentBtn.textContent = 'Save Changes';
-                        switchView('add-borrow-lent-view');
-                    }
-                } else if (e.target.classList.contains('delete-borrow-lent-btn')) {
-                    if (window.confirm("Are you sure you want to delete this record?")) {
-                        borrowedLentRecords = borrowedLentRecords.filter(r => r.id !== recordId);
-                        saveData();
-                        renderBorrowedLentRecords();
-                    }
-                } else if (e.target.classList.contains('mark-paid-btn')) {
-                     const record = borrowedLentRecords.find(r => r.id === recordId);
-                     if (record) {
-                        record.paid = true;
-                        saveData();
-                        renderBorrowedLentRecords();
-                     }
-                }
-            });
-
-
-            // Budget Listeners
-            prevMonthBtn.addEventListener('click', () => {
-                currentBudgetMonth.setMonth(currentBudgetMonth.getMonth() - 1);
-                updateBudgetSummary();
-            });
-            nextMonthBtn.addEventListener('click', () => {
-                currentBudgetMonth.setMonth(currentBudgetMonth.getMonth() + 1);
-                updateBudgetSummary();
-            });
-            saveBudgetGoalBtn.addEventListener('click', () => {
-                const monthKey = `${currentBudgetMonth.getFullYear()}-${currentBudgetMonth.getMonth()}`;
-                const goal = parseFloat(monthlyBudgetGoalInput.value) || 0;
-                monthlyBudgets[monthKey] = { goal };
-                saveData();
-                updateBudgetSummary();
-            });
-
-            // Theme toggle listener
-            themeToggleBtn.addEventListener('click', toggleTheme);
-
-            // Calculator toggle listener
-            calculatorToggleBtn.addEventListener('click', () => {
-                if (calculatorContainer.style.display === 'none') {
-                    calculatorContainer.style.display = 'block';
-                } else {
-                    calculatorContainer.style.display = 'none';
-                }
-            });
-            calcButtons.addEventListener('click', handleCalculatorInput);
-
-            // Monthly summary listener
-            monthlySummaryList.addEventListener('click', (e) => {
-                const clickedItem = e.target.closest('.monthly-summary-item');
-                if (clickedItem) {
-                    const monthYear = clickedItem.dataset.monthYear;
-                    showMonthlyTransactions(monthYear);
-                }
-            });
-
-            // Historical transaction actions listener
-            filteredTransactionList.addEventListener('click', (e) => {
-                const clickedItem = e.target.closest('.transaction-item');
-                if (!clickedItem) return;
-
-                const transactionId = clickedItem.dataset.id;
-                
-                // Edit button logic
-                if (e.target.classList.contains('edit-btn')) {
-                    editHistoricalTransaction(transactionId);
-                }
-                
-                // Delete button logic
-                if (e.target.classList.contains('delete-btn')) {
-                    if (window.confirm("Are you sure you want to delete this historical transaction?")) {
-                        deleteHistoricalTransaction(transactionId);
-                    }
-                }
-
-                // Move button logic
-                if (e.target.classList.contains('move-btn')) {
-                    if (window.confirm("Are you sure you want to move this transaction to the current month?")) {
-                        moveHistoricalTransaction(transactionId);
-                    }
-                }
-            });
-
-            // Force monthly summary button with confirmation
-            forceMonthlySummaryBtn.addEventListener('click', () => {
-                const isConfirmed = window.confirm("Are you sure you want to force a monthly summary? This will save your current transactions as a summary and reset your dashboard.");
-
-                if (isConfirmed) {
-                    // Get the current date
-                    const now = new Date();
-                    // Simulate a month change by setting the last checked date to the previous month
-                    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-                    localStorage.setItem('lastCheckDate', previousMonth.toISOString());
-
-                    // Run the check and save function
-                    checkAndSaveMonthlySummary();
-                    
-                    // Refresh the page to see the changes
-                    location.reload(); 
-                }
-            });
-
-            // Initial load
-            applyTheme(currentTheme);
-            checkAndSaveMonthlySummary();
-            displayCategories(); // Initial rendering of categories
-            renderTransactions(); // Initial rendering of transactions
-            updateBalance(); // Initial balance update
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
