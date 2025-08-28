@@ -359,3 +359,47 @@ main {
     background-color: #4CAF50;
     color: white;
 }
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .menu-items {
+        margin-top: 10px;
+    }
+
+    .header-buttons {
+        margin-top: 10px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .header-buttons button {
+        flex-grow: 1;
+        margin: 0 5px;
+    }
+
+    .main-section.active {
+        flex-direction: column;
+    }
+
+    .sidebar, .main-content {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .section-box {
+        padding: 15px;
+    }
+
+    .quick-add-buttons {
+        flex-direction: column;
+    }
+}
