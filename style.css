@@ -130,7 +130,7 @@ main {
 }
 
 .section-box.frog-box {
-    /* The problematic background-image line has been removed. */
+    background-image: url('https://i.imgur.com/rL4eJvW.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: bottom right;
