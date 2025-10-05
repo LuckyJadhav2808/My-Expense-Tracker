@@ -725,6 +725,92 @@
         .report-table tr:hover {
             background-color: #f8f9fa;
         }
+
+        /* Download Overlay */
+        .download-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .download-overlay.active {
+            display: flex;
+        }
+
+        .download-modal {
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .download-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .file-preview {
+            background: #f8f9fa;
+            border: 1px solid #e1e5eb;
+            border-radius: var(--radius);
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .file-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: var(--radius);
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .step-instructions {
+            text-align: left;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+        }
+
+        .step-instructions ol {
+            margin-left: 20px;
+        }
+
+        .step-instructions li {
+            margin-bottom: 8px;
+        }
+
+        .auto-download-btn {
+            background: var(--success);
+            color: white;
+        }
+
+        .copy-success {
+            color: var(--success);
+            font-weight: bold;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -736,6 +822,56 @@
 
     <!-- Floating cat animation -->
     <div class="cat-animation">😸</div>
+
+    <!-- Download Overlay -->
+    <div class="download-overlay" id="downloadOverlay">
+        <div class="download-modal">
+            <h3 id="downloadTitle">Download Options</h3>
+            <div class="file-info">
+                <strong>File:</strong> <span id="fileNameDisplay">backup.json</span><br>
+                <strong>Type:</strong> <span id="fileTypeDisplay">JSON</span><br>
+                <strong>Size:</strong> <span id="fileSizeDisplay">0 KB</span>
+            </div>
+            
+            <div id="filePreviewContainer" style="display: none;">
+                <h4>File Preview</h4>
+                <div class="file-preview" id="filePreview"></div>
+            </div>
+
+            <p id="downloadMessage">Choose how you want to download the file:</p>
+            
+            <div class="download-options">
+                <button class="btn btn-primary" id="directDownload">
+                    <i class="fas fa-download"></i> Direct Download
+                </button>
+                <button class="btn auto-download-btn" id="autoDownload">
+                    <i class="fas fa-file-download"></i> Create File
+                </button>
+                <button class="btn btn-secondary" id="copyData">
+                    <i class="fas fa-copy"></i> Copy Data
+                </button>
+                <button class="btn btn-danger" id="cancelDownload">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+
+            <div id="copySuccess" class="copy-success" style="display: none;">
+                <i class="fas fa-check-circle"></i> Data copied to clipboard!
+            </div>
+
+            <div id="stepByStepGuide" class="step-instructions" style="display: none;">
+                <h5>How to save your file:</h5>
+                <ol>
+                    <li>Data is copied to your clipboard</li>
+                    <li>Open any text editor app</li>
+                    <li>Create a new file</li>
+                    <li>Paste the data</li>
+                    <li>Save as: <strong id="guideFileName">backup.json</strong></li>
+                    <li>Use the file as needed</li>
+                </ol>
+            </div>
+        </div>
+    </div>
 
     <header>
         <div class="header-content">
@@ -1207,15 +1343,18 @@
     </div>
 
     <script>
-        // Data Storage and Initialization
+        // Enhanced ExpenseTracker Class with Download Features
         class ExpenseTracker {
             constructor() {
-                // Initialize data structures first
                 this.categories = [];
                 this.budgets = [];
                 this.transactions = [];
                 this.lendBorrowRecords = [];
                 this.charts = {};
+                this.currentDownloadData = null;
+                this.currentFileName = null;
+                this.currentFileType = null;
+                this.currentFileBlob = null;
                 
                 this.init();
                 this.loadData();
@@ -1224,7 +1363,6 @@
             }
             
             init() {
-                // Set current date
                 const now = new Date();
                 document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { 
                     weekday: 'long', 
@@ -1233,11 +1371,9 @@
                     day: 'numeric' 
                 });
                 
-                // Set default date in forms to today
                 document.getElementById('date').valueAsDate = now;
-                document.getElementById('dueDate').valueAsDate = new Date(new Date().setDate(now.getDate() + 7)); // Default due date: 7 days from now
+                document.getElementById('dueDate').valueAsDate = new Date(new Date().setDate(now.getDate() + 7));
                 
-                // Initialize default categories if none exist
                 if (!localStorage.getItem('categories')) {
                     const defaultCategories = [
                         { id: 1, name: 'Food', type: 'expense', color: '#FF6B6B' },
@@ -1251,7 +1387,6 @@
                     localStorage.setItem('categories', JSON.stringify(defaultCategories));
                 }
                 
-                // Initialize default budgets if none exist
                 if (!localStorage.getItem('budgets')) {
                     const defaultBudgets = [
                         { type: 'daily', amount: 500 },
@@ -1260,17 +1395,14 @@
                     localStorage.setItem('budgets', JSON.stringify(defaultBudgets));
                 }
                 
-                // Initialize transactions if none exist
                 if (!localStorage.getItem('transactions')) {
                     localStorage.setItem('transactions', JSON.stringify([]));
                 }
                 
-                // Initialize lend/borrow records if none exist
                 if (!localStorage.getItem('lendBorrowRecords')) {
                     localStorage.setItem('lendBorrowRecords', JSON.stringify([]));
                 }
                 
-                // Check if it's a new month and reset monthly expenses if needed
                 this.checkMonthReset();
             }
             
@@ -1296,54 +1428,45 @@
                     const lastResetDate = new Date(lastReset);
                     if (lastResetDate.getMonth() !== now.getMonth() || 
                         lastResetDate.getFullYear() !== now.getFullYear()) {
-                        // It's a new month, reset monthly expenses
                         this.resetMonthlyExpenses();
                     }
                 } else {
-                    // First time using the app, set the reset date
                     localStorage.setItem('lastMonthlyReset', now.toISOString());
                 }
             }
             
             resetMonthlyExpenses() {
-                // Archive current month's data before resetting
                 const now = new Date();
                 const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
                 const monthKey = `${lastMonth.getFullYear()}-${lastMonth.getMonth() + 1}`;
                 
-                // Get transactions from last month
                 const lastMonthTransactions = this.transactions.filter(transaction => {
                     const transactionDate = new Date(transaction.date);
                     return transactionDate.getMonth() === lastMonth.getMonth() && 
                            transactionDate.getFullYear() === lastMonth.getFullYear();
                 });
                 
-                // Save to monthly summaries
                 const summaries = JSON.parse(localStorage.getItem('monthlySummaries')) || {};
                 summaries[monthKey] = lastMonthTransactions;
                 localStorage.setItem('monthlySummaries', JSON.stringify(summaries));
                 
-                // Remove last month's transactions
                 this.transactions = this.transactions.filter(transaction => {
                     const transactionDate = new Date(transaction.date);
                     return transactionDate.getMonth() === now.getMonth() && 
                            transactionDate.getFullYear() === now.getFullYear();
                 });
                 
-                // Update last reset date
                 localStorage.setItem('lastMonthlyReset', now.toISOString());
                 this.saveData();
             }
             
             setupEventListeners() {
-                // Navigation - Fixed the issue here
                 document.querySelectorAll('.nav-item').forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.preventDefault();
                         const sectionId = item.getAttribute('data-section');
                         this.showSection(sectionId);
                         
-                        // Update active nav item
                         document.querySelectorAll('.nav-item').forEach(nav => {
                             nav.classList.remove('active');
                         });
@@ -1351,71 +1474,58 @@
                     });
                 });
                 
-                // Expense form
                 document.getElementById('expenseForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.addTransaction();
                 });
                 
-                // Edit form
                 document.getElementById('editForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.updateTransaction();
                 });
                 
-                // Cancel edit
                 document.getElementById('cancelEdit').addEventListener('click', () => {
                     this.hideEditForm();
                 });
                 
-                // Category form
                 document.getElementById('categoryForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.addCategory();
                 });
                 
-                // Budget form
                 document.getElementById('budgetForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.setBudget();
                 });
                 
-                // Splitwise form
                 document.getElementById('splitForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.calculateSplit();
                 });
                 
-                // Lend/Borrow form
                 document.getElementById('lendBorrowForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.addLendBorrowRecord();
                 });
                 
-                // Backup button
                 document.getElementById('backupBtn').addEventListener('click', () => {
                     this.backupData();
                 });
                 
-                // Restore button
                 document.getElementById('restoreBtn').addEventListener('click', () => {
                     this.restoreData();
                 });
                 
-                // Calculator toggle
                 document.querySelector('.toggle-calc').addEventListener('click', () => {
                     document.querySelector('.calculator').classList.toggle('active');
                 });
                 
-                // Calculator functionality
                 this.setupCalculator();
                 
-                // Summary month selector
                 document.getElementById('summaryMonth').addEventListener('change', () => {
                     this.showSummary();
                 });
                 
-                // Report controls
                 document.getElementById('reportType').addEventListener('change', () => {
                     this.populateReportPeriods();
                 });
@@ -1428,20 +1538,32 @@
                     this.previewReport();
                 });
                 
-                // Initialize report periods
+                // Download overlay events
+                document.getElementById('directDownload').addEventListener('click', () => {
+                    this.performDirectDownload();
+                });
+                
+                document.getElementById('autoDownload').addEventListener('click', () => {
+                    this.createAndDownloadFile();
+                });
+                
+                document.getElementById('copyData').addEventListener('click', () => {
+                    this.copyDataToClipboard();
+                });
+                
+                document.getElementById('cancelDownload').addEventListener('click', () => {
+                    this.hideDownloadOverlay();
+                });
+                
                 this.populateReportPeriods();
             }
             
             showSection(sectionId) {
-                // Hide all sections
                 document.querySelectorAll('.section').forEach(section => {
                     section.classList.remove('active');
                 });
-                
-                // Show selected section
                 document.getElementById(sectionId).classList.add('active');
                 
-                // Update UI for specific sections
                 if (sectionId === 'categories') {
                     this.renderCategories();
                 } else if (sectionId === 'budget') {
@@ -1453,8 +1575,6 @@
                     this.renderLendBorrowRecords();
                 } else if (sectionId === 'analytics') {
                     this.renderAnalytics();
-                } else if (sectionId === 'reports') {
-                    // Already handled by populateReportPeriods
                 }
             }
             
@@ -1483,11 +1603,9 @@
                 this.saveData();
                 this.updateUI();
                 
-                // Reset form
                 document.getElementById('expenseForm').reset();
                 document.getElementById('date').valueAsDate = new Date();
                 
-                // Show success message
                 this.showNotification('Transaction added successfully!', 'success');
             }
             
@@ -1501,7 +1619,6 @@
                 document.getElementById('editDescription').value = transaction.description;
                 document.getElementById('editDate').value = transaction.date;
                 
-                // Populate categories in edit form
                 const editCategorySelect = document.getElementById('editCategory');
                 editCategorySelect.innerHTML = '';
                 this.categories.forEach(category => {
@@ -1562,13 +1679,11 @@
                     return;
                 }
                 
-                // Check if category already exists
                 if (this.categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
                     this.showNotification('Category already exists.', 'error');
                     return;
                 }
                 
-                // Generate a random color for the category
                 const colors = ['#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', '#118AB2', '#073B4C', '#EF476F'];
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 
@@ -1583,10 +1698,8 @@
                 this.saveData();
                 this.renderCategories();
                 
-                // Reset form
                 document.getElementById('categoryForm').reset();
                 
-                // Show success message
                 this.showNotification('Category added successfully!', 'success');
             }
             
@@ -1599,7 +1712,6 @@
                     return;
                 }
                 
-                // Check if budget already exists for this type
                 const existingBudgetIndex = this.budgets.findIndex(budget => budget.type === type);
                 
                 if (existingBudgetIndex !== -1) {
@@ -1612,10 +1724,8 @@
                 this.renderBudgets();
                 this.updateUI();
                 
-                // Reset form
                 document.getElementById('budgetForm').reset();
                 
-                // Show success message
                 this.showNotification('Budget set successfully!', 'success');
             }
             
@@ -1667,7 +1777,7 @@
                     amount,
                     description,
                     dueDate,
-                    status: 'pending', // pending, returned, received
+                    status: 'pending',
                     date: new Date().toISOString().split('T')[0]
                 };
                 
@@ -1675,7 +1785,6 @@
                 this.saveData();
                 this.renderLendBorrowRecords();
                 
-                // Reset form
                 document.getElementById('lendBorrowForm').reset();
                 document.getElementById('dueDate').valueAsDate = new Date(new Date().setDate(new Date().getDate() + 7));
                 
@@ -1715,7 +1824,6 @@
                     lendBorrowList.appendChild(recordElement);
                 });
                 
-                // Add event listeners after DOM is updated
                 setTimeout(() => {
                     document.querySelectorAll('.mark-completed').forEach(button => {
                         button.addEventListener('click', (e) => {
@@ -1752,6 +1860,163 @@
                 }
             }
             
+            // Download Methods
+            showDownloadOverlay(message, data, fileName, fileType = 'json') {
+                this.currentDownloadData = data;
+                this.currentFileName = fileName;
+                this.currentFileType = fileType;
+                
+                if (fileType === 'json') {
+                    this.currentFileBlob = new Blob([data], { type: 'application/json' });
+                } else if (fileType === 'pdf') {
+                    this.currentFileBlob = new Blob([data], { type: 'application/pdf' });
+                } else if (fileType === 'excel') {
+                    this.currentFileBlob = new Blob([this.s2ab(data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                }
+                
+                document.getElementById('downloadTitle').textContent = 'Download Options';
+                document.getElementById('downloadMessage').textContent = message;
+                document.getElementById('fileNameDisplay').textContent = fileName;
+                document.getElementById('fileTypeDisplay').textContent = fileType.toUpperCase();
+                document.getElementById('fileSizeDisplay').textContent = this.formatFileSize(this.currentFileBlob.size);
+                document.getElementById('guideFileName').textContent = fileName;
+                
+                if (fileType === 'json') {
+                    document.getElementById('filePreviewContainer').style.display = 'block';
+                    document.getElementById('filePreview').textContent = data.substring(0, 1000) + (data.length > 1000 ? '...' : '');
+                } else {
+                    document.getElementById('filePreviewContainer').style.display = 'none';
+                }
+                
+                document.getElementById('copySuccess').style.display = 'none';
+                document.getElementById('stepByStepGuide').style.display = 'none';
+                
+                document.getElementById('downloadOverlay').classList.add('active');
+            }
+
+            s2ab(s) {
+                const buf = new ArrayBuffer(s.length);
+                const view = new Uint8Array(buf);
+                for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            hideDownloadOverlay() {
+                document.getElementById('downloadOverlay').classList.remove('active');
+                this.currentDownloadData = null;
+                this.currentFileName = null;
+                this.currentFileType = null;
+                this.currentFileBlob = null;
+            }
+
+            performDirectDownload() {
+                if (!this.currentFileBlob || !this.currentFileName) return;
+                
+                try {
+                    const url = URL.createObjectURL(this.currentFileBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = this.currentFileName;
+                    link.style.display = 'none';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    
+                    this.showNotification('Download started!', 'success');
+                    this.hideDownloadOverlay();
+                } catch (error) {
+                    console.error('Download error:', error);
+                    this.showNotification('Download failed. Try "Create File" option.', 'error');
+                }
+            }
+
+            createAndDownloadFile() {
+                if (!this.currentFileBlob || !this.currentFileName) return;
+                
+                try {
+                    const url = URL.createObjectURL(this.currentFileBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = this.currentFileName;
+                    link.style.display = 'none';
+                    
+                    document.body.appendChild(link);
+                    
+                    const event = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    
+                    link.dispatchEvent(event);
+                    
+                    if (this.currentFileType === 'pdf') {
+                        setTimeout(() => {
+                            const pdfWindow = window.open(url, '_blank');
+                            if (!pdfWindow) {
+                                this.showNotification('Popup blocked! Please allow popups and try again.', 'error');
+                            }
+                        }, 1000);
+                    }
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 1000);
+                    
+                    this.showNotification('File creation initiated!', 'success');
+                    this.hideDownloadOverlay();
+                    
+                } catch (error) {
+                    console.error('File creation error:', error);
+                    this.showNotification('File creation failed. Try "Copy Data" option.', 'error');
+                }
+            }
+
+            copyDataToClipboard() {
+                if (!this.currentDownloadData) return;
+                
+                try {
+                    navigator.clipboard.writeText(this.currentDownloadData).then(() => {
+                        document.getElementById('copySuccess').style.display = 'block';
+                        document.getElementById('stepByStepGuide').style.display = 'block';
+                        this.showNotification('Data copied to clipboard!', 'success');
+                        
+                        setTimeout(() => {
+                            document.getElementById('copySuccess').style.display = 'none';
+                        }, 5000);
+                    }).catch(() => {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = this.currentDownloadData;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        document.getElementById('copySuccess').style.display = 'block';
+                        document.getElementById('stepByStepGuide').style.display = 'block';
+                        this.showNotification('Data copied to clipboard!', 'success');
+                        
+                        setTimeout(() => {
+                            document.getElementById('copySuccess').style.display = 'none';
+                        }, 5000);
+                    });
+                } catch (error) {
+                    this.showNotification('Failed to copy data. Try direct download.', 'error');
+                }
+            }
+
             backupData() {
                 try {
                     const data = {
@@ -1763,25 +2028,15 @@
                     };
                     
                     const dataStr = JSON.stringify(data, null, 2);
-                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const fileName = `meownyyy-backup-${new Date().toISOString().split('T')[0]}.json`;
                     
-                    // Create download link
-                    const url = URL.createObjectURL(dataBlob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `meownyyy-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    this.showDownloadOverlay(
+                        'Choose how you want to backup your data:',
+                        dataStr,
+                        fileName,
+                        'json'
+                    );
                     
-                    // Append to body, click, and remove
-                    document.body.appendChild(link);
-                    link.click();
-                    
-                    // Clean up
-                    setTimeout(() => {
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
-                    }, 100);
-                    
-                    this.showNotification('Backup created successfully!', 'success');
                 } catch (error) {
                     console.error('Backup error:', error);
                     this.showNotification('Failed to create backup. Please try again.', 'error');
@@ -1802,7 +2057,6 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         
-                        // Validate backup data structure
                         if (data.categories && data.budgets && data.transactions && data.lendBorrowRecords) {
                             this.categories = data.categories;
                             this.budgets = data.budgets;
@@ -1812,7 +2066,7 @@
                             this.updateUI();
                             
                             this.showNotification('Data restored successfully!', 'success');
-                            fileInput.value = ''; // Clear file input
+                            fileInput.value = '';
                         } else {
                             this.showNotification('Invalid backup file format.', 'error');
                         }
@@ -1840,13 +2094,11 @@
                         const value = button.textContent;
                         
                         if (value === 'C') {
-                            // Clear
                             currentInput = '';
                             previousInput = '';
                             operator = '';
                             display.value = '';
                         } else if (value === '=') {
-                            // Calculate
                             if (previousInput && currentInput && operator) {
                                 const result = this.calculate(
                                     parseFloat(previousInput), 
@@ -1859,10 +2111,8 @@
                                 operator = '';
                             }
                         } else if (['+', '-', '×', '÷'].includes(value)) {
-                            // Operator
                             if (currentInput) {
                                 if (previousInput && operator) {
-                                    // Calculate previous operation first
                                     const result = this.calculate(
                                         parseFloat(previousInput), 
                                         parseFloat(currentInput), 
@@ -1877,7 +2127,6 @@
                                 currentInput = '';
                             }
                         } else {
-                            // Number or decimal
                             currentInput += value;
                             display.value = currentInput;
                         }
@@ -1896,7 +2145,6 @@
             }
             
             formatCurrency(amount) {
-                // Format as Indian Rupees with proper formatting
                 return new Intl.NumberFormat('en-IN', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -1950,7 +2198,6 @@
                     categoryList.appendChild(categoryElement);
                 });
                 
-                // Add event listeners for delete buttons
                 document.querySelectorAll('.delete-category').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const categoryId = parseInt(e.target.closest('button').getAttribute('data-id'));
@@ -1985,7 +2232,6 @@
                     budgetList.appendChild(budgetElement);
                 });
                 
-                // Add event listeners for delete buttons
                 document.querySelectorAll('.delete-budget').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const budgetType = e.target.closest('button').getAttribute('data-type');
@@ -2003,7 +2249,6 @@
                     return;
                 }
                 
-                // Sort transactions by date (newest first)
                 const sortedTransactions = [...this.transactions].sort((a, b) => 
                     new Date(b.date) - new Date(a.date)
                 );
@@ -2033,7 +2278,6 @@
                     transactionList.appendChild(transactionElement);
                 });
                 
-                // Add event listeners for edit and delete buttons
                 document.querySelectorAll('.edit-transaction').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const transactionId = parseInt(e.target.closest('button').getAttribute('data-id'));
@@ -2055,12 +2299,10 @@
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
                 
-                // Calculate daily expenses
                 const dailyExpenses = this.transactions
                     .filter(t => t.date === today && t.type === 'expense')
                     .reduce((sum, t) => sum + t.amount, 0);
                 
-                // Calculate monthly expenses
                 const monthlyExpenses = this.transactions
                     .filter(t => {
                         const transactionDate = new Date(t.date);
@@ -2070,7 +2312,6 @@
                     })
                     .reduce((sum, t) => sum + t.amount, 0);
                 
-                // Calculate total income and expenses
                 const totalIncome = this.transactions
                     .filter(t => t.type === 'income')
                     .reduce((sum, t) => sum + t.amount, 0);
@@ -2081,11 +2322,9 @@
                 
                 const balance = totalIncome - totalExpenses;
                 
-                // Get budgets
                 const dailyBudget = this.budgets.find(b => b.type === 'daily')?.amount || 0;
                 const monthlyBudget = this.budgets.find(b => b.type === 'monthly')?.amount || 0;
                 
-                // Update dashboard elements
                 document.getElementById('dailyExpense').textContent = `₹${this.formatCurrency(dailyExpenses)}`;
                 document.getElementById('monthlyExpense').textContent = `₹${this.formatCurrency(monthlyExpenses)}`;
                 document.getElementById('dailyBudget').textContent = `₹${this.formatCurrency(dailyBudget)}`;
@@ -2094,14 +2333,12 @@
                 document.getElementById('totalIncome').textContent = `₹${this.formatCurrency(totalIncome)}`;
                 document.getElementById('totalExpenses').textContent = `₹${this.formatCurrency(totalExpenses)}`;
                 
-                // Update progress bars
                 const dailyProgress = dailyBudget > 0 ? (dailyExpenses / dailyBudget) * 100 : 0;
                 const monthlyProgress = monthlyBudget > 0 ? (monthlyExpenses / monthlyBudget) * 100 : 0;
                 
                 document.getElementById('dailyProgress').style.width = `${Math.min(dailyProgress, 100)}%`;
                 document.getElementById('monthlyProgress').style.width = `${Math.min(monthlyProgress, 100)}%`;
                 
-                // Update recent expenses
                 this.updateRecentExpenses();
             }
             
@@ -2170,7 +2407,6 @@
                 const summaryMonthSelect = document.getElementById('summaryMonth');
                 summaryMonthSelect.innerHTML = '';
                 
-                // Get unique months from transactions
                 const months = new Set();
                 this.transactions.forEach(transaction => {
                     const date = new Date(transaction.date);
@@ -2178,20 +2414,17 @@
                     months.add(monthKey);
                 });
                 
-                // Also include archived months
                 const summaries = JSON.parse(localStorage.getItem('monthlySummaries')) || {};
                 Object.keys(summaries).forEach(monthKey => {
                     months.add(monthKey);
                 });
                 
-                // Convert to array and sort (newest first)
                 const sortedMonths = Array.from(months).sort((a, b) => {
                     const [aYear, aMonth] = a.split('-').map(Number);
                     const [bYear, bMonth] = b.split('-').map(Number);
                     return new Date(bYear, bMonth - 1) - new Date(aYear, aMonth - 1);
                 });
                 
-                // Add options to select
                 sortedMonths.forEach(monthKey => {
                     const [year, month] = monthKey.split('-');
                     const option = document.createElement('option');
@@ -2211,14 +2444,12 @@
                 const [year, month] = monthKey.split('-').map(Number);
                 const summaryContent = document.getElementById('summaryContent');
                 
-                // Get transactions for selected month
                 let monthTransactions = this.transactions.filter(transaction => {
                     const transactionDate = new Date(transaction.date);
                     return transactionDate.getMonth() + 1 === month && 
                            transactionDate.getFullYear() === year;
                 });
                 
-                // If no current transactions, check archived summaries
                 if (monthTransactions.length === 0) {
                     const summaries = JSON.parse(localStorage.getItem('monthlySummaries')) || {};
                     monthTransactions = summaries[monthKey] || [];
@@ -2229,7 +2460,6 @@
                     return;
                 }
                 
-                // Calculate summary statistics
                 const income = monthTransactions
                     .filter(t => t.type === 'income')
                     .reduce((sum, t) => sum + t.amount, 0);
@@ -2240,7 +2470,6 @@
                 
                 const balance = income - expenses;
                 
-                // Group by category
                 const categoryBreakdown = {};
                 monthTransactions.forEach(transaction => {
                     const category = this.categories.find(cat => cat.id === transaction.categoryId);
@@ -2257,7 +2486,6 @@
                     }
                 });
                 
-                // Generate HTML for summary
                 let html = `
                     <div class="dashboard-grid">
                         <div class="card">
@@ -2310,7 +2538,6 @@
                 summaryContent.innerHTML = html;
             }
             
-            // Analytics Dashboard
             renderAnalytics() {
                 this.renderIncomeExpenseChart();
                 this.renderCategoryChart();
@@ -2321,7 +2548,6 @@
             renderIncomeExpenseChart() {
                 const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
                 
-                // Calculate total income and expenses
                 const totalIncome = this.transactions
                     .filter(t => t.type === 'income')
                     .reduce((sum, t) => sum + t.amount, 0);
@@ -2330,7 +2556,6 @@
                     .filter(t => t.type === 'expense')
                     .reduce((sum, t) => sum + t.amount, 0);
                 
-                // Destroy existing chart if it exists
                 if (this.charts.incomeExpense) {
                     this.charts.incomeExpense.destroy();
                 }
@@ -2365,7 +2590,6 @@
             renderCategoryChart() {
                 const ctx = document.getElementById('categoryChart').getContext('2d');
                 
-                // Group expenses by category
                 const categoryData = {};
                 this.transactions
                     .filter(t => t.type === 'expense')
@@ -2378,7 +2602,6 @@
                         categoryData[categoryName] += transaction.amount;
                     });
                 
-                // Destroy existing chart if it exists
                 if (this.charts.category) {
                     this.charts.category.destroy();
                 }
@@ -2416,7 +2639,6 @@
             renderMonthlyTrendChart() {
                 const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
                 
-                // Get last 6 months
                 const months = [];
                 const incomeData = [];
                 const expenseData = [];
@@ -2428,7 +2650,6 @@
                     const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
                     months.push(monthName);
                     
-                    // Calculate income and expenses for this month
                     const monthIncome = this.transactions
                         .filter(t => {
                             const transactionDate = new Date(t.date);
@@ -2451,7 +2672,6 @@
                     expenseData.push(monthExpense);
                 }
                 
-                // Destroy existing chart if it exists
                 if (this.charts.monthlyTrend) {
                     this.charts.monthlyTrend.destroy();
                 }
@@ -2511,7 +2731,6 @@
                     })
                     .reduce((sum, t) => sum + t.amount, 0);
                 
-                // Destroy existing chart if it exists
                 if (this.charts.budget) {
                     this.charts.budget.destroy();
                 }
@@ -2551,14 +2770,12 @@
                 });
             }
             
-            // Reports Section
             populateReportPeriods() {
                 const reportType = document.getElementById('reportType').value;
                 const reportPeriod = document.getElementById('reportPeriod');
                 reportPeriod.innerHTML = '';
                 
                 if (reportType === 'monthly') {
-                    // Get unique months from transactions
                     const months = new Set();
                     this.transactions.forEach(transaction => {
                         const date = new Date(transaction.date);
@@ -2566,10 +2783,8 @@
                         months.add(monthKey);
                     });
                     
-                    // Convert to array and sort (newest first)
                     const sortedMonths = Array.from(months).sort((a, b) => b.localeCompare(a));
                     
-                    // Add options
                     sortedMonths.forEach(monthKey => {
                         const [year, month] = monthKey.split('-');
                         const option = document.createElement('option');
@@ -2581,17 +2796,14 @@
                         reportPeriod.appendChild(option);
                     });
                 } else {
-                    // Yearly reports
                     const years = new Set();
                     this.transactions.forEach(transaction => {
                         const date = new Date(transaction.date);
                         years.add(date.getFullYear().toString());
                     });
                     
-                    // Convert to array and sort (newest first)
                     const sortedYears = Array.from(years).sort((a, b) => b - a);
                     
-                    // Add options
                     sortedYears.forEach(year => {
                         const option = document.createElement('option');
                         option.value = year;
@@ -2619,7 +2831,6 @@
                     const [year, month] = reportPeriod.split('-');
                     title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
                     
-                    // Filter transactions for the selected month
                     reportData = this.transactions.filter(transaction => {
                         const transactionDate = new Date(transaction.date);
                         return transactionDate.getMonth() + 1 === parseInt(month) && 
@@ -2629,20 +2840,17 @@
                     const year = reportPeriod;
                     title = `Yearly Report - ${year}`;
                     
-                    // Filter transactions for the selected year
                     reportData = this.transactions.filter(transaction => {
                         const transactionDate = new Date(transaction.date);
                         return transactionDate.getFullYear() === parseInt(year);
                     });
                 }
                 
-                // Generate preview HTML
                 let html = `<h4>${title}</h4>`;
                 
                 if (reportData.length === 0) {
                     html += '<p>No data available for the selected period.</p>';
                 } else {
-                    // Calculate summary
                     const income = reportData
                         .filter(t => t.type === 'income')
                         .reduce((sum, t) => sum + t.amount, 0);
@@ -2670,7 +2878,6 @@
                         </div>
                     `;
                     
-                    // Transactions table
                     html += `
                         <table class="report-table">
                             <thead>
@@ -2738,7 +2945,6 @@
                         title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
                         fileName = `Monthly_Report_${year}_${month}.pdf`;
                         
-                        // Filter transactions for the selected month
                         reportData = this.transactions.filter(transaction => {
                             const transactionDate = new Date(transaction.date);
                             return transactionDate.getMonth() + 1 === parseInt(month) && 
@@ -2749,14 +2955,12 @@
                         title = `Yearly Report - ${year}`;
                         fileName = `Yearly_Report_${year}.pdf`;
                         
-                        // Filter transactions for the selected year
                         reportData = this.transactions.filter(transaction => {
                             const transactionDate = new Date(transaction.date);
                             return transactionDate.getFullYear() === parseInt(year);
                         });
                     }
                     
-                    // Calculate summary
                     const income = reportData
                         .filter(t => t.type === 'income')
                         .reduce((sum, t) => sum + t.amount, 0);
@@ -2767,11 +2971,9 @@
                     
                     const balance = income - expenses;
                     
-                    // Set up PDF document
                     doc.setFontSize(20);
                     doc.text(title, 105, 15, { align: 'center' });
                     
-                    // Add summary section
                     doc.setFontSize(12);
                     doc.text('Financial Summary', 14, 30);
                     
@@ -2785,7 +2987,6 @@
                     doc.text(`Net ${balance >= 0 ? 'Profit' : 'Loss'}: ₹${this.formatCurrency(Math.abs(balance))}`, 120, 55);
                     doc.setTextColor(0, 0, 0);
                     
-                    // Add transactions table
                     if (reportData.length > 0) {
                         doc.text('Transaction Details', 14, 70);
                         
@@ -2814,25 +3015,12 @@
                             alternateRowStyles: { fillColor: [240, 240, 240] },
                             columnStyles: {
                                 4: { cellWidth: 25, halign: 'right' }
-                            },
-                            didDrawCell: (data) => {
-                                if (data.column.index === 4 && data.cell.raw) {
-                                    const isIncome = data.cell.raw.includes('+');
-                                    doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
-                                }
-                            },
-                            willDrawCell: (data) => {
-                                if (data.column.index === 4 && data.cell.raw) {
-                                    const isIncome = data.cell.raw.includes('+');
-                                    doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
-                                }
                             }
                         });
                     } else {
                         doc.text('No transactions found for the selected period.', 14, 75);
                     }
                     
-                    // Add footer
                     const pageCount = doc.internal.getNumberOfPages();
                     for (let i = 1; i <= pageCount; i++) {
                         doc.setPage(i);
@@ -2841,9 +3029,15 @@
                         doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 290, { align: 'center' });
                     }
                     
-                    // Save the PDF
-                    doc.save(fileName);
-                    this.showNotification('PDF report generated successfully!', 'success');
+                    const pdfOutput = doc.output();
+                    
+                    this.showDownloadOverlay(
+                        'Choose how you want to download the PDF report:',
+                        pdfOutput,
+                        fileName,
+                        'pdf'
+                    );
+                    
                 } catch (error) {
                     console.error('PDF generation error:', error);
                     this.showNotification('Failed to generate PDF. Please try again.', 'error');
@@ -2861,7 +3055,6 @@
                         title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
                         fileName = `Monthly_Report_${year}_${month}.xlsx`;
                         
-                        // Filter transactions for the selected month
                         reportData = this.transactions.filter(transaction => {
                             const transactionDate = new Date(transaction.date);
                             return transactionDate.getMonth() + 1 === parseInt(month) && 
@@ -2872,14 +3065,12 @@
                         title = `Yearly Report - ${year}`;
                         fileName = `Yearly_Report_${year}.xlsx`;
                         
-                        // Filter transactions for the selected year
                         reportData = this.transactions.filter(transaction => {
                             const transactionDate = new Date(transaction.date);
                             return transactionDate.getFullYear() === parseInt(year);
                         });
                     }
                     
-                    // Prepare data for Excel
                     const excelData = [
                         [title],
                         [''],
@@ -2903,15 +3094,19 @@
                         ]);
                     });
                     
-                    // Create worksheet and workbook
                     const ws = XLSX.utils.aoa_to_sheet(excelData);
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, 'Financial Report');
                     
-                    // Generate and download Excel file
-                    XLSX.writeFile(wb, fileName);
+                    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
                     
-                    this.showNotification('Excel report generated successfully!', 'success');
+                    this.showDownloadOverlay(
+                        'Choose how you want to download the Excel report:',
+                        excelBuffer,
+                        fileName,
+                        'excel'
+                    );
+                    
                 } catch (error) {
                     console.error('Excel generation error:', error);
                     this.showNotification('Failed to generate Excel file. Please try again.', 'error');
@@ -2926,7 +3121,6 @@
                 notification.className = `notification ${type}`;
                 notification.classList.add('show');
                 
-                // Change icon based on type
                 const icon = notification.querySelector('i');
                 if (type === 'success') {
                     icon.className = 'fas fa-check-circle';
@@ -2934,13 +3128,12 @@
                     icon.className = 'fas fa-exclamation-circle';
                 }
                 
-                // Hide after 3 seconds
                 setTimeout(() => {
                     notification.classList.remove('show');
                 }, 3000);
             }
         }
-        
+
         // Initialize the expense tracker when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             new ExpenseTracker();
