@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meownyyy - Expense Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #FF9EAA;
@@ -568,6 +572,10 @@
             .nav-icon {
                 font-size: 1.3rem;
             }
+            
+            .chart-container {
+                height: 300px !important;
+            }
         }
 
         /* Notification */
@@ -644,6 +652,78 @@
         
         .currency {
             font-family: Arial, sans-serif;
+        }
+        
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            height: 400px;
+            position: relative;
+        }
+        
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        /* Analytics Grid */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        /* Reports Section */
+        .report-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .report-preview {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .report-table th, .report-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e5eb;
+        }
+        
+        .report-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .report-table tr:hover {
+            background-color: #f8f9fa;
         }
     </style>
 </head>
@@ -863,6 +943,29 @@
             </div>
         </section>
 
+        <!-- Analytics Section -->
+        <section id="analytics" class="section">
+            <h2>Analytics Dashboard</h2>
+            <div class="analytics-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Expense vs Income</div>
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Expenses by Category</div>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Monthly Trends</div>
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Budget vs Actual</div>
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+        </section>
+
         <!-- Splitwise Section -->
         <section id="splitwise" class="section">
             <h2>Split Expenses</h2>
@@ -900,6 +1003,57 @@
                     <i class="fas fa-chart-bar"></i>
                     <p>Select a month to view summary</p>
                 </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="section">
+            <h2>Financial Reports</h2>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Generate Reports</div>
+                    <div class="card-icon">📊</div>
+                </div>
+                
+                <div class="report-controls">
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label for="reportType">Report Type</label>
+                        <select id="reportType">
+                            <option value="monthly">Monthly Report</option>
+                            <option value="yearly">Yearly Report</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label for="reportPeriod">Period</label>
+                        <select id="reportPeriod">
+                            <!-- Options will be populated by JS -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label for="reportFormat">Format</label>
+                        <select id="reportFormat">
+                            <option value="pdf">PDF Document</option>
+                            <option value="excel">Excel Spreadsheet</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="report-actions">
+                    <button id="generateReport" class="btn btn-primary">
+                        <i class="fas fa-chart-bar"></i> Generate Report
+                    </button>
+                    <button id="previewReport" class="btn btn-secondary">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>
+                </div>
+            </div>
+            
+            <div id="reportPreview" class="report-preview" style="display: none;">
+                <h3>Report Preview</h3>
+                <div id="previewContent"></div>
             </div>
         </section>
 
@@ -993,6 +1147,10 @@
             <span class="nav-icon">💰</span>
             <span>Budget</span>
         </a>
+        <a href="#" class="nav-item" data-section="analytics">
+            <span class="nav-icon">📈</span>
+            <span>Analytics</span>
+        </a>
         <a href="#" class="nav-item" data-section="splitwise">
             <span class="nav-icon">👥</span>
             <span>Splitwise</span>
@@ -1000,6 +1158,10 @@
         <a href="#" class="nav-item" data-section="summary">
             <span class="nav-icon">📋</span>
             <span>Summary</span>
+        </a>
+        <a href="#" class="nav-item" data-section="reports">
+            <span class="nav-icon">📄</span>
+            <span>Reports</span>
         </a>
         <a href="#" class="nav-item" data-section="lend-borrow">
             <span class="nav-icon">🤝</span>
@@ -1053,6 +1215,7 @@
                 this.budgets = [];
                 this.transactions = [];
                 this.lendBorrowRecords = [];
+                this.charts = {};
                 
                 this.init();
                 this.loadData();
@@ -1251,6 +1414,22 @@
                 document.getElementById('summaryMonth').addEventListener('change', () => {
                     this.showSummary();
                 });
+                
+                // Report controls
+                document.getElementById('reportType').addEventListener('change', () => {
+                    this.populateReportPeriods();
+                });
+                
+                document.getElementById('generateReport').addEventListener('click', () => {
+                    this.generateReport();
+                });
+                
+                document.getElementById('previewReport').addEventListener('click', () => {
+                    this.previewReport();
+                });
+                
+                // Initialize report periods
+                this.populateReportPeriods();
             }
             
             showSection(sectionId) {
@@ -1272,6 +1451,10 @@
                     this.showSummary();
                 } else if (sectionId === 'lend-borrow') {
                     this.renderLendBorrowRecords();
+                } else if (sectionId === 'analytics') {
+                    this.renderAnalytics();
+                } else if (sectionId === 'reports') {
+                    // Already handled by populateReportPeriods
                 }
             }
             
@@ -2110,6 +2293,604 @@
                 summaryContent.innerHTML = html;
             }
             
+            // Analytics Dashboard
+            renderAnalytics() {
+                this.renderIncomeExpenseChart();
+                this.renderCategoryChart();
+                this.renderMonthlyTrendChart();
+                this.renderBudgetChart();
+            }
+            
+            renderIncomeExpenseChart() {
+                const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+                
+                // Calculate total income and expenses
+                const totalIncome = this.transactions
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                const totalExpenses = this.transactions
+                    .filter(t => t.type === 'expense')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                // Destroy existing chart if it exists
+                if (this.charts.incomeExpense) {
+                    this.charts.incomeExpense.destroy();
+                }
+                
+                this.charts.incomeExpense = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Income', 'Expenses'],
+                        datasets: [{
+                            data: [totalIncome, totalExpenses],
+                            backgroundColor: ['#8AC926', '#FF6B6B'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Income vs Expenses'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            renderCategoryChart() {
+                const ctx = document.getElementById('categoryChart').getContext('2d');
+                
+                // Group expenses by category
+                const categoryData = {};
+                this.transactions
+                    .filter(t => t.type === 'expense')
+                    .forEach(transaction => {
+                        const category = this.categories.find(c => c.id === transaction.categoryId);
+                        const categoryName = category ? category.name : 'Uncategorized';
+                        if (!categoryData[categoryName]) {
+                            categoryData[categoryName] = 0;
+                        }
+                        categoryData[categoryName] += transaction.amount;
+                    });
+                
+                // Destroy existing chart if it exists
+                if (this.charts.category) {
+                    this.charts.category.destroy();
+                }
+                
+                this.charts.category = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(categoryData),
+                        datasets: [{
+                            data: Object.values(categoryData),
+                            backgroundColor: [
+                                '#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', 
+                                '#118AB2', '#073B4C', '#EF476F', '#FF9EAA'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Expenses by Category'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            renderMonthlyTrendChart() {
+                const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+                
+                // Get last 6 months
+                const months = [];
+                const incomeData = [];
+                const expenseData = [];
+                
+                const now = new Date();
+                for (let i = 5; i >= 0; i--) {
+                    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                    months.push(monthName);
+                    
+                    // Calculate income and expenses for this month
+                    const monthIncome = this.transactions
+                        .filter(t => {
+                            const transactionDate = new Date(t.date);
+                            return transactionDate.getMonth() === date.getMonth() &&
+                                   transactionDate.getFullYear() === date.getFullYear() &&
+                                   t.type === 'income';
+                        })
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    const monthExpense = this.transactions
+                        .filter(t => {
+                            const transactionDate = new Date(t.date);
+                            return transactionDate.getMonth() === date.getMonth() &&
+                                   transactionDate.getFullYear() === date.getFullYear() &&
+                                   t.type === 'expense';
+                        })
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    incomeData.push(monthIncome);
+                    expenseData.push(monthExpense);
+                }
+                
+                // Destroy existing chart if it exists
+                if (this.charts.monthlyTrend) {
+                    this.charts.monthlyTrend.destroy();
+                }
+                
+                this.charts.monthlyTrend = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Income',
+                                data: incomeData,
+                                borderColor: '#8AC926',
+                                backgroundColor: 'rgba(138, 201, 38, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Expenses',
+                                data: expenseData,
+                                borderColor: '#FF6B6B',
+                                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Monthly Income vs Expenses'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            renderBudgetChart() {
+                const ctx = document.getElementById('budgetChart').getContext('2d');
+                
+                const monthlyBudget = this.budgets.find(b => b.type === 'monthly')?.amount || 0;
+                const currentMonthExpenses = this.transactions
+                    .filter(t => {
+                        const transactionDate = new Date(t.date);
+                        const now = new Date();
+                        return transactionDate.getMonth() === now.getMonth() &&
+                               transactionDate.getFullYear() === now.getFullYear() &&
+                               t.type === 'expense';
+                    })
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                // Destroy existing chart if it exists
+                if (this.charts.budget) {
+                    this.charts.budget.destroy();
+                }
+                
+                this.charts.budget = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Budget vs Actual'],
+                        datasets: [
+                            {
+                                label: 'Monthly Budget',
+                                data: [monthlyBudget],
+                                backgroundColor: '#A2D2FF'
+                            },
+                            {
+                                label: 'Actual Expenses',
+                                data: [currentMonthExpenses],
+                                backgroundColor: '#FF9EAA'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Budget vs Actual Expenses'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Reports Section
+            populateReportPeriods() {
+                const reportType = document.getElementById('reportType').value;
+                const reportPeriod = document.getElementById('reportPeriod');
+                reportPeriod.innerHTML = '';
+                
+                if (reportType === 'monthly') {
+                    // Get unique months from transactions
+                    const months = new Set();
+                    this.transactions.forEach(transaction => {
+                        const date = new Date(transaction.date);
+                        const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                        months.add(monthKey);
+                    });
+                    
+                    // Convert to array and sort (newest first)
+                    const sortedMonths = Array.from(months).sort((a, b) => b.localeCompare(a));
+                    
+                    // Add options
+                    sortedMonths.forEach(monthKey => {
+                        const [year, month] = monthKey.split('-');
+                        const option = document.createElement('option');
+                        option.value = monthKey;
+                        option.textContent = new Date(year, month - 1).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                        });
+                        reportPeriod.appendChild(option);
+                    });
+                } else {
+                    // Yearly reports
+                    const years = new Set();
+                    this.transactions.forEach(transaction => {
+                        const date = new Date(transaction.date);
+                        years.add(date.getFullYear().toString());
+                    });
+                    
+                    // Convert to array and sort (newest first)
+                    const sortedYears = Array.from(years).sort((a, b) => b - a);
+                    
+                    // Add options
+                    sortedYears.forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year;
+                        reportPeriod.appendChild(option);
+                    });
+                }
+            }
+            
+            previewReport() {
+                const reportType = document.getElementById('reportType').value;
+                const reportPeriod = document.getElementById('reportPeriod').value;
+                const previewContent = document.getElementById('previewContent');
+                const reportPreview = document.getElementById('reportPreview');
+                
+                if (!reportPeriod) {
+                    this.showNotification('Please select a report period.', 'error');
+                    return;
+                }
+                
+                let reportData = [];
+                let title = '';
+                
+                if (reportType === 'monthly') {
+                    const [year, month] = reportPeriod.split('-');
+                    title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                    
+                    // Filter transactions for the selected month
+                    reportData = this.transactions.filter(transaction => {
+                        const transactionDate = new Date(transaction.date);
+                        return transactionDate.getMonth() + 1 === parseInt(month) && 
+                               transactionDate.getFullYear() === parseInt(year);
+                    });
+                } else {
+                    const year = reportPeriod;
+                    title = `Yearly Report - ${year}`;
+                    
+                    // Filter transactions for the selected year
+                    reportData = this.transactions.filter(transaction => {
+                        const transactionDate = new Date(transaction.date);
+                        return transactionDate.getFullYear() === parseInt(year);
+                    });
+                }
+                
+                // Generate preview HTML
+                let html = `<h4>${title}</h4>`;
+                
+                if (reportData.length === 0) {
+                    html += '<p>No data available for the selected period.</p>';
+                } else {
+                    // Calculate summary
+                    const income = reportData
+                        .filter(t => t.type === 'income')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    const expenses = reportData
+                        .filter(t => t.type === 'expense')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    const balance = income - expenses;
+                    
+                    html += `
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 0.9rem; color: #6c757d;">Total Income</div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">₹${this.formatCurrency(income)}</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 0.9rem; color: #6c757d;">Total Expenses</div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">₹${this.formatCurrency(expenses)}</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 0.9rem; color: #6c757d;">Balance</div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: ${balance >= 0 ? '#28a745' : '#dc3545'};">₹${this.formatCurrency(balance)}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Transactions table
+                    html += `
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    reportData.forEach(transaction => {
+                        const category = this.categories.find(c => c.id === transaction.categoryId);
+                        html += `
+                            <tr>
+                                <td>${new Date(transaction.date).toLocaleDateString()}</td>
+                                <td>${transaction.type}</td>
+                                <td>${category ? category.name : 'Uncategorized'}</td>
+                                <td>${transaction.description}</td>
+                                <td style="color: ${transaction.type === 'income' ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                                    ${transaction.type === 'income' ? '+' : '-'}₹${this.formatCurrency(transaction.amount)}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `</tbody></table>`;
+                }
+                
+                previewContent.innerHTML = html;
+                reportPreview.style.display = 'block';
+            }
+            
+            generateReport() {
+                const reportType = document.getElementById('reportType').value;
+                const reportPeriod = document.getElementById('reportPeriod').value;
+                const reportFormat = document.getElementById('reportFormat').value;
+                
+                if (!reportPeriod) {
+                    this.showNotification('Please select a report period.', 'error');
+                    return;
+                }
+                
+                if (reportFormat === 'pdf') {
+                    this.generatePDFReport(reportType, reportPeriod);
+                } else {
+                    this.generateExcelReport(reportType, reportPeriod);
+                }
+            }
+            
+            generatePDFReport(reportType, reportPeriod) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                let reportData = [];
+                let title = '';
+                let fileName = '';
+                
+                if (reportType === 'monthly') {
+                    const [year, month] = reportPeriod.split('-');
+                    title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                    fileName = `Monthly_Report_${year}_${month}.pdf`;
+                    
+                    // Filter transactions for the selected month
+                    reportData = this.transactions.filter(transaction => {
+                        const transactionDate = new Date(transaction.date);
+                        return transactionDate.getMonth() + 1 === parseInt(month) && 
+                               transactionDate.getFullYear() === parseInt(year);
+                    });
+                } else {
+                    const year = reportPeriod;
+                    title = `Yearly Report - ${year}`;
+                    fileName = `Yearly_Report_${year}.pdf`;
+                    
+                    // Filter transactions for the selected year
+                    reportData = this.transactions.filter(transaction => {
+                        const transactionDate = new Date(transaction.date);
+                        return transactionDate.getFullYear() === parseInt(year);
+                    });
+                }
+                
+                // Calculate summary
+                const income = reportData
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                const expenses = reportData
+                    .filter(t => t.type === 'expense')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                const balance = income - expenses;
+                
+                // Set up PDF document
+                doc.setFontSize(20);
+                doc.text(title, 105, 15, { align: 'center' });
+                
+                // Add summary section
+                doc.setFontSize(12);
+                doc.text('Financial Summary', 14, 30);
+                
+                doc.setFillColor(240, 240, 240);
+                doc.rect(14, 35, 182, 25, 'F');
+                
+                doc.text(`Total Income: ₹${this.formatCurrency(income)}`, 20, 45);
+                doc.text(`Total Expenses: ₹${this.formatCurrency(expenses)}`, 20, 55);
+                doc.text(`Balance: ₹${this.formatCurrency(balance)}`, 120, 45);
+                doc.setTextColor(balance >= 0 ? 0 : 255, balance >= 0 ? 128 : 0, 0);
+                doc.text(`Net ${balance >= 0 ? 'Profit' : 'Loss'}: ₹${this.formatCurrency(Math.abs(balance))}`, 120, 55);
+                doc.setTextColor(0, 0, 0);
+                
+                // Add transactions table
+                if (reportData.length > 0) {
+                    doc.text('Transaction Details', 14, 70);
+                    
+                    const tableColumn = ["Date", "Type", "Category", "Description", "Amount"];
+                    const tableRows = [];
+                    
+                    reportData.forEach(transaction => {
+                        const category = this.categories.find(c => c.id === transaction.categoryId);
+                        const transactionDate = new Date(transaction.date);
+                        const transactionRow = [
+                            transactionDate.toLocaleDateString(),
+                            transaction.type,
+                            category ? category.name : 'Uncategorized',
+                            transaction.description,
+                            `${transaction.type === 'income' ? '+' : '-'}₹${this.formatCurrency(transaction.amount)}`
+                        ];
+                        tableRows.push(transactionRow);
+                    });
+                    
+                    doc.autoTable({
+                        head: [tableColumn],
+                        body: tableRows,
+                        startY: 75,
+                        styles: { fontSize: 8 },
+                        headStyles: { fillColor: [255, 158, 170] },
+                        alternateRowStyles: { fillColor: [240, 240, 240] },
+                        columnStyles: {
+                            4: { cellWidth: 25, halign: 'right' }
+                        },
+                        didDrawCell: (data) => {
+                            if (data.column.index === 4 && data.cell.raw) {
+                                const isIncome = data.cell.raw.includes('+');
+                                doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
+                            }
+                        },
+                        willDrawCell: (data) => {
+                            if (data.column.index === 4 && data.cell.raw) {
+                                const isIncome = data.cell.raw.includes('+');
+                                doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
+                            }
+                        }
+                    });
+                } else {
+                    doc.text('No transactions found for the selected period.', 14, 75);
+                }
+                
+                // Add footer
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(10);
+                    doc.text(`Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 290, { align: 'center' });
+                }
+                
+                // Save the PDF
+                doc.save(fileName);
+                this.showNotification('PDF report generated successfully!', 'success');
+            }
+            
+            generateExcelReport(reportType, reportPeriod) {
+                let reportData = [];
+                let title = '';
+                let fileName = '';
+                
+                if (reportType === 'monthly') {
+                    const [year, month] = reportPeriod.split('-');
+                    title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                    fileName = `Monthly_Report_${year}_${month}.xlsx`;
+                    
+                    // Filter transactions for the selected month
+                    reportData = this.transactions.filter(transaction => {
+                        const transactionDate = new Date(transaction.date);
+                        return transactionDate.getMonth() + 1 === parseInt(month) && 
+                               transactionDate.getFullYear() === parseInt(year);
+                    });
+                } else {
+                    const year = reportPeriod;
+                    title = `Yearly Report - ${year}`;
+                    fileName = `Yearly_Report_${year}.xlsx`;
+                    
+                    // Filter transactions for the selected year
+                    reportData = this.transactions.filter(transaction => {
+                        const transactionDate = new Date(transaction.date);
+                        return transactionDate.getFullYear() === parseInt(year);
+                    });
+                }
+                
+                // Prepare data for Excel
+                const excelData = [
+                    [title],
+                    [''],
+                    ['Financial Summary'],
+                    ['Total Income', `₹${this.formatCurrency(reportData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0))}`],
+                    ['Total Expenses', `₹${this.formatCurrency(reportData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0))}`],
+                    ['Balance', `₹${this.formatCurrency(reportData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - reportData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0))}`],
+                    [''],
+                    ['Transaction Details'],
+                    ['Date', 'Type', 'Category', 'Description', 'Amount']
+                ];
+                
+                reportData.forEach(transaction => {
+                    const category = this.categories.find(c => c.id === transaction.categoryId);
+                    excelData.push([
+                        new Date(transaction.date).toLocaleDateString(),
+                        transaction.type,
+                        category ? category.name : 'Uncategorized',
+                        transaction.description,
+                        transaction.type === 'income' ? transaction.amount : -transaction.amount
+                    ]);
+                });
+                
+                // Create worksheet and workbook
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Financial Report');
+                
+                // Generate and download Excel file
+                XLSX.writeFile(wb, fileName);
+                
+                this.showNotification('Excel report generated successfully!', 'success');
+            }
+            
             showNotification(message, type) {
                 const notification = document.getElementById('notification');
                 const notificationText = document.getElementById('notificationText');
@@ -2139,5 +2920,4 @@
         });
     </script>
 </body>
-    </html>
-
+</html>
