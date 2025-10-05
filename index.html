@@ -1753,26 +1753,39 @@
             }
             
             backupData() {
-                const data = {
-                    categories: this.categories,
-                    budgets: this.budgets,
-                    transactions: this.transactions,
-                    lendBorrowRecords: this.lendBorrowRecords,
-                    backupDate: new Date().toISOString()
-                };
-                
-                const dataStr = JSON.stringify(data);
-                const dataBlob = new Blob([dataStr], {type: 'application/json'});
-                
-                const url = URL.createObjectURL(dataBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `meownyyy-backup-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                this.showNotification('Backup created successfully!', 'success');
+                try {
+                    const data = {
+                        categories: this.categories,
+                        budgets: this.budgets,
+                        transactions: this.transactions,
+                        lendBorrowRecords: this.lendBorrowRecords,
+                        backupDate: new Date().toISOString()
+                    };
+                    
+                    const dataStr = JSON.stringify(data, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    
+                    // Create download link
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `meownyyy-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    
+                    // Append to body, click, and remove
+                    document.body.appendChild(link);
+                    link.click();
+                    
+                    // Clean up
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                    
+                    this.showNotification('Backup created successfully!', 'success');
+                } catch (error) {
+                    console.error('Backup error:', error);
+                    this.showNotification('Failed to create backup. Please try again.', 'error');
+                }
             }
             
             restoreData() {
@@ -1804,8 +1817,12 @@
                             this.showNotification('Invalid backup file format.', 'error');
                         }
                     } catch (error) {
+                        console.error('Restore error:', error);
                         this.showNotification('Error reading backup file.', 'error');
                     }
+                };
+                reader.onerror = () => {
+                    this.showNotification('Error reading file.', 'error');
                 };
                 reader.readAsText(file);
             }
@@ -2708,187 +2725,197 @@
             }
             
             generatePDFReport(reportType, reportPeriod) {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                let reportData = [];
-                let title = '';
-                let fileName = '';
-                
-                if (reportType === 'monthly') {
-                    const [year, month] = reportPeriod.split('-');
-                    title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
-                    fileName = `Monthly_Report_${year}_${month}.pdf`;
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
                     
-                    // Filter transactions for the selected month
-                    reportData = this.transactions.filter(transaction => {
-                        const transactionDate = new Date(transaction.date);
-                        return transactionDate.getMonth() + 1 === parseInt(month) && 
-                               transactionDate.getFullYear() === parseInt(year);
-                    });
-                } else {
-                    const year = reportPeriod;
-                    title = `Yearly Report - ${year}`;
-                    fileName = `Yearly_Report_${year}.pdf`;
+                    let reportData = [];
+                    let title = '';
+                    let fileName = '';
                     
-                    // Filter transactions for the selected year
-                    reportData = this.transactions.filter(transaction => {
-                        const transactionDate = new Date(transaction.date);
-                        return transactionDate.getFullYear() === parseInt(year);
-                    });
-                }
-                
-                // Calculate summary
-                const income = reportData
-                    .filter(t => t.type === 'income')
-                    .reduce((sum, t) => sum + t.amount, 0);
-                
-                const expenses = reportData
-                    .filter(t => t.type === 'expense')
-                    .reduce((sum, t) => sum + t.amount, 0);
-                
-                const balance = income - expenses;
-                
-                // Set up PDF document
-                doc.setFontSize(20);
-                doc.text(title, 105, 15, { align: 'center' });
-                
-                // Add summary section
-                doc.setFontSize(12);
-                doc.text('Financial Summary', 14, 30);
-                
-                doc.setFillColor(240, 240, 240);
-                doc.rect(14, 35, 182, 25, 'F');
-                
-                doc.text(`Total Income: ₹${this.formatCurrency(income)}`, 20, 45);
-                doc.text(`Total Expenses: ₹${this.formatCurrency(expenses)}`, 20, 55);
-                doc.text(`Balance: ₹${this.formatCurrency(balance)}`, 120, 45);
-                doc.setTextColor(balance >= 0 ? 0 : 255, balance >= 0 ? 128 : 0, 0);
-                doc.text(`Net ${balance >= 0 ? 'Profit' : 'Loss'}: ₹${this.formatCurrency(Math.abs(balance))}`, 120, 55);
-                doc.setTextColor(0, 0, 0);
-                
-                // Add transactions table
-                if (reportData.length > 0) {
-                    doc.text('Transaction Details', 14, 70);
+                    if (reportType === 'monthly') {
+                        const [year, month] = reportPeriod.split('-');
+                        title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                        fileName = `Monthly_Report_${year}_${month}.pdf`;
+                        
+                        // Filter transactions for the selected month
+                        reportData = this.transactions.filter(transaction => {
+                            const transactionDate = new Date(transaction.date);
+                            return transactionDate.getMonth() + 1 === parseInt(month) && 
+                                   transactionDate.getFullYear() === parseInt(year);
+                        });
+                    } else {
+                        const year = reportPeriod;
+                        title = `Yearly Report - ${year}`;
+                        fileName = `Yearly_Report_${year}.pdf`;
+                        
+                        // Filter transactions for the selected year
+                        reportData = this.transactions.filter(transaction => {
+                            const transactionDate = new Date(transaction.date);
+                            return transactionDate.getFullYear() === parseInt(year);
+                        });
+                    }
                     
-                    const tableColumn = ["Date", "Type", "Category", "Description", "Amount"];
-                    const tableRows = [];
+                    // Calculate summary
+                    const income = reportData
+                        .filter(t => t.type === 'income')
+                        .reduce((sum, t) => sum + t.amount, 0);
                     
-                    reportData.forEach(transaction => {
-                        const category = this.categories.find(c => c.id === transaction.categoryId);
-                        const transactionDate = new Date(transaction.date);
-                        const transactionRow = [
-                            transactionDate.toLocaleDateString(),
-                            transaction.type,
-                            category ? category.name : 'Uncategorized',
-                            transaction.description,
-                            `${transaction.type === 'income' ? '+' : '-'}₹${this.formatCurrency(transaction.amount)}`
-                        ];
-                        tableRows.push(transactionRow);
-                    });
+                    const expenses = reportData
+                        .filter(t => t.type === 'expense')
+                        .reduce((sum, t) => sum + t.amount, 0);
                     
-                    doc.autoTable({
-                        head: [tableColumn],
-                        body: tableRows,
-                        startY: 75,
-                        styles: { fontSize: 8 },
-                        headStyles: { fillColor: [255, 158, 170] },
-                        alternateRowStyles: { fillColor: [240, 240, 240] },
-                        columnStyles: {
-                            4: { cellWidth: 25, halign: 'right' }
-                        },
-                        didDrawCell: (data) => {
-                            if (data.column.index === 4 && data.cell.raw) {
-                                const isIncome = data.cell.raw.includes('+');
-                                doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
+                    const balance = income - expenses;
+                    
+                    // Set up PDF document
+                    doc.setFontSize(20);
+                    doc.text(title, 105, 15, { align: 'center' });
+                    
+                    // Add summary section
+                    doc.setFontSize(12);
+                    doc.text('Financial Summary', 14, 30);
+                    
+                    doc.setFillColor(240, 240, 240);
+                    doc.rect(14, 35, 182, 25, 'F');
+                    
+                    doc.text(`Total Income: ₹${this.formatCurrency(income)}`, 20, 45);
+                    doc.text(`Total Expenses: ₹${this.formatCurrency(expenses)}`, 20, 55);
+                    doc.text(`Balance: ₹${this.formatCurrency(balance)}`, 120, 45);
+                    doc.setTextColor(balance >= 0 ? 0 : 255, balance >= 0 ? 128 : 0, 0);
+                    doc.text(`Net ${balance >= 0 ? 'Profit' : 'Loss'}: ₹${this.formatCurrency(Math.abs(balance))}`, 120, 55);
+                    doc.setTextColor(0, 0, 0);
+                    
+                    // Add transactions table
+                    if (reportData.length > 0) {
+                        doc.text('Transaction Details', 14, 70);
+                        
+                        const tableColumn = ["Date", "Type", "Category", "Description", "Amount"];
+                        const tableRows = [];
+                        
+                        reportData.forEach(transaction => {
+                            const category = this.categories.find(c => c.id === transaction.categoryId);
+                            const transactionDate = new Date(transaction.date);
+                            const transactionRow = [
+                                transactionDate.toLocaleDateString(),
+                                transaction.type,
+                                category ? category.name : 'Uncategorized',
+                                transaction.description,
+                                `${transaction.type === 'income' ? '+' : '-'}₹${this.formatCurrency(transaction.amount)}`
+                            ];
+                            tableRows.push(transactionRow);
+                        });
+                        
+                        doc.autoTable({
+                            head: [tableColumn],
+                            body: tableRows,
+                            startY: 75,
+                            styles: { fontSize: 8 },
+                            headStyles: { fillColor: [255, 158, 170] },
+                            alternateRowStyles: { fillColor: [240, 240, 240] },
+                            columnStyles: {
+                                4: { cellWidth: 25, halign: 'right' }
+                            },
+                            didDrawCell: (data) => {
+                                if (data.column.index === 4 && data.cell.raw) {
+                                    const isIncome = data.cell.raw.includes('+');
+                                    doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
+                                }
+                            },
+                            willDrawCell: (data) => {
+                                if (data.column.index === 4 && data.cell.raw) {
+                                    const isIncome = data.cell.raw.includes('+');
+                                    doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
+                                }
                             }
-                        },
-                        willDrawCell: (data) => {
-                            if (data.column.index === 4 && data.cell.raw) {
-                                const isIncome = data.cell.raw.includes('+');
-                                doc.setTextColor(isIncome ? 0 : 255, isIncome ? 128 : 0, 0);
-                            }
-                        }
-                    });
-                } else {
-                    doc.text('No transactions found for the selected period.', 14, 75);
+                        });
+                    } else {
+                        doc.text('No transactions found for the selected period.', 14, 75);
+                    }
+                    
+                    // Add footer
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(10);
+                        doc.text(`Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
+                        doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 290, { align: 'center' });
+                    }
+                    
+                    // Save the PDF
+                    doc.save(fileName);
+                    this.showNotification('PDF report generated successfully!', 'success');
+                } catch (error) {
+                    console.error('PDF generation error:', error);
+                    this.showNotification('Failed to generate PDF. Please try again.', 'error');
                 }
-                
-                // Add footer
-                const pageCount = doc.internal.getNumberOfPages();
-                for (let i = 1; i <= pageCount; i++) {
-                    doc.setPage(i);
-                    doc.setFontSize(10);
-                    doc.text(`Page ${i} of ${pageCount}`, 105, 285, { align: 'center' });
-                    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 290, { align: 'center' });
-                }
-                
-                // Save the PDF
-                doc.save(fileName);
-                this.showNotification('PDF report generated successfully!', 'success');
             }
             
             generateExcelReport(reportType, reportPeriod) {
-                let reportData = [];
-                let title = '';
-                let fileName = '';
-                
-                if (reportType === 'monthly') {
-                    const [year, month] = reportPeriod.split('-');
-                    title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
-                    fileName = `Monthly_Report_${year}_${month}.xlsx`;
+                try {
+                    let reportData = [];
+                    let title = '';
+                    let fileName = '';
                     
-                    // Filter transactions for the selected month
-                    reportData = this.transactions.filter(transaction => {
-                        const transactionDate = new Date(transaction.date);
-                        return transactionDate.getMonth() + 1 === parseInt(month) && 
-                               transactionDate.getFullYear() === parseInt(year);
-                    });
-                } else {
-                    const year = reportPeriod;
-                    title = `Yearly Report - ${year}`;
-                    fileName = `Yearly_Report_${year}.xlsx`;
+                    if (reportType === 'monthly') {
+                        const [year, month] = reportPeriod.split('-');
+                        title = `Monthly Report - ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                        fileName = `Monthly_Report_${year}_${month}.xlsx`;
+                        
+                        // Filter transactions for the selected month
+                        reportData = this.transactions.filter(transaction => {
+                            const transactionDate = new Date(transaction.date);
+                            return transactionDate.getMonth() + 1 === parseInt(month) && 
+                                   transactionDate.getFullYear() === parseInt(year);
+                        });
+                    } else {
+                        const year = reportPeriod;
+                        title = `Yearly Report - ${year}`;
+                        fileName = `Yearly_Report_${year}.xlsx`;
+                        
+                        // Filter transactions for the selected year
+                        reportData = this.transactions.filter(transaction => {
+                            const transactionDate = new Date(transaction.date);
+                            return transactionDate.getFullYear() === parseInt(year);
+                        });
+                    }
                     
-                    // Filter transactions for the selected year
-                    reportData = this.transactions.filter(transaction => {
-                        const transactionDate = new Date(transaction.date);
-                        return transactionDate.getFullYear() === parseInt(year);
+                    // Prepare data for Excel
+                    const excelData = [
+                        [title],
+                        [''],
+                        ['Financial Summary'],
+                        ['Total Income', `₹${this.formatCurrency(reportData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0))}`],
+                        ['Total Expenses', `₹${this.formatCurrency(reportData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0))}`],
+                        ['Balance', `₹${this.formatCurrency(reportData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - reportData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0))}`],
+                        [''],
+                        ['Transaction Details'],
+                        ['Date', 'Type', 'Category', 'Description', 'Amount']
+                    ];
+                    
+                    reportData.forEach(transaction => {
+                        const category = this.categories.find(c => c.id === transaction.categoryId);
+                        excelData.push([
+                            new Date(transaction.date).toLocaleDateString(),
+                            transaction.type,
+                            category ? category.name : 'Uncategorized',
+                            transaction.description,
+                            transaction.type === 'income' ? transaction.amount : -transaction.amount
+                        ]);
                     });
+                    
+                    // Create worksheet and workbook
+                    const ws = XLSX.utils.aoa_to_sheet(excelData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Financial Report');
+                    
+                    // Generate and download Excel file
+                    XLSX.writeFile(wb, fileName);
+                    
+                    this.showNotification('Excel report generated successfully!', 'success');
+                } catch (error) {
+                    console.error('Excel generation error:', error);
+                    this.showNotification('Failed to generate Excel file. Please try again.', 'error');
                 }
-                
-                // Prepare data for Excel
-                const excelData = [
-                    [title],
-                    [''],
-                    ['Financial Summary'],
-                    ['Total Income', `₹${this.formatCurrency(reportData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0))}`],
-                    ['Total Expenses', `₹${this.formatCurrency(reportData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0))}`],
-                    ['Balance', `₹${this.formatCurrency(reportData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - reportData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0))}`],
-                    [''],
-                    ['Transaction Details'],
-                    ['Date', 'Type', 'Category', 'Description', 'Amount']
-                ];
-                
-                reportData.forEach(transaction => {
-                    const category = this.categories.find(c => c.id === transaction.categoryId);
-                    excelData.push([
-                        new Date(transaction.date).toLocaleDateString(),
-                        transaction.type,
-                        category ? category.name : 'Uncategorized',
-                        transaction.description,
-                        transaction.type === 'income' ? transaction.amount : -transaction.amount
-                    ]);
-                });
-                
-                // Create worksheet and workbook
-                const ws = XLSX.utils.aoa_to_sheet(excelData);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Financial Report');
-                
-                // Generate and download Excel file
-                XLSX.writeFile(wb, fileName);
-                
-                this.showNotification('Excel report generated successfully!', 'success');
             }
             
             showNotification(message, type) {
