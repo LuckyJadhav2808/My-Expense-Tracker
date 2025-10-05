@@ -811,6 +811,87 @@
             font-weight: bold;
             margin: 10px 0;
         }
+        
+        /* Email Backup Section */
+        .email-backup-form {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .email-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: var(--radius);
+            display: none;
+        }
+        
+        .email-status.success {
+            background: rgba(138, 201, 38, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+            display: block;
+        }
+        
+        .email-status.error {
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            display: block;
+        }
+        
+        /* Print to PDF Section */
+        .print-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        /* Manual Copy Section */
+        .manual-copy-section {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .copy-area {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e1e5eb;
+            border-radius: var(--radius);
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .copy-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* File Import Section */
+        .file-import-section {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .import-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body>
@@ -1237,29 +1318,107 @@
         <!-- Backup Section -->
         <section id="backup" class="section">
             <h2>Backup & Restore</h2>
+            
+            <!-- Manual Copy System -->
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Backup Data</div>
-                    <div class="card-icon">💾</div>
+                    <div class="card-title">Manual Copy System</div>
+                    <div class="card-icon">📋</div>
                 </div>
-                <p>Create a backup of your expense data.</p>
-                <button id="backupBtn" class="btn btn-primary">
-                    <i class="fas fa-download"></i> Download Backup
-                </button>
+                <p>Copy your data manually for offline backup.</p>
+                <div class="manual-copy-section">
+                    <textarea id="manualCopyArea" class="copy-area" readonly placeholder="Your data will appear here..."></textarea>
+                    <div class="copy-buttons">
+                        <button id="generateCopyData" class="btn btn-primary">
+                            <i class="fas fa-sync"></i> Generate Data
+                        </button>
+                        <button id="copyToClipboard" class="btn btn-secondary">
+                            <i class="fas fa-copy"></i> Copy to Clipboard
+                        </button>
+                        <button id="clearCopyArea" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                    <div id="copyStatus" class="email-status"></div>
+                </div>
             </div>
             
+            <!-- Email Backup System -->
             <div class="card" style="margin-top: 20px;">
                 <div class="card-header">
-                    <div class="card-title">Restore Data</div>
-                    <div class="card-icon">🔄</div>
+                    <div class="card-title">Email Backup System</div>
+                    <div class="card-icon">📧</div>
                 </div>
-                <p>Restore your expense data from a backup file.</p>
-                <div class="form-group">
-                    <label for="restoreFile">Select Backup File</label>
-                    <input type="file" id="restoreFile" accept=".json">
+                <p>Send a backup of your data to your email.</p>
+                <div class="email-backup-form">
+                    <div class="form-group">
+                        <label for="emailAddress">Email Address</label>
+                        <input type="email" id="emailAddress" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="backupSubject">Email Subject</label>
+                        <input type="text" id="backupSubject" placeholder="Expense Tracker Backup">
+                    </div>
+                    <button id="sendEmailBackup" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Backup via Email
+                    </button>
+                    <div id="emailStatus" class="email-status"></div>
                 </div>
-                <button id="restoreBtn" class="btn btn-secondary">
-                    <i class="fas fa-upload"></i> Restore Data
+            </div>
+            
+            <!-- Print to PDF -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <div class="card-title">Print to PDF</div>
+                    <div class="card-icon">🖨️</div>
+                </div>
+                <p>Generate PDF reports for printing or sharing.</p>
+                <div class="print-options">
+                    <button id="printSummary" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i> Print Summary
+                    </button>
+                    <button id="printFullReport" class="btn btn-secondary">
+                        <i class="fas fa-print"></i> Print Full Report
+                    </button>
+                    <button id="printCharts" class="btn btn-success">
+                        <i class="fas fa-chart-bar"></i> Print Charts
+                    </button>
+                </div>
+            </div>
+            
+            <!-- File Import -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <div class="card-title">File Import</div>
+                    <div class="card-icon">📁</div>
+                </div>
+                <p>Restore your data from a backup file.</p>
+                <div class="file-import-section">
+                    <div class="form-group">
+                        <label for="restoreFile">Select Backup File</label>
+                        <input type="file" id="restoreFile" accept=".json,.txt">
+                    </div>
+                    <div class="import-options">
+                        <button id="restoreBtn" class="btn btn-secondary">
+                            <i class="fas fa-upload"></i> Restore Data
+                        </button>
+                        <button id="validateBackup" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Validate Backup
+                        </button>
+                    </div>
+                    <div id="importStatus" class="email-status"></div>
+                </div>
+            </div>
+            
+            <!-- Complete Backup System -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <div class="card-title">Complete Backup System</div>
+                    <div class="card-icon">💾</div>
+                </div>
+                <p>Create a complete backup of your expense data with all options.</p>
+                <button id="backupBtn" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download Complete Backup
                 </button>
             </div>
         </section>
@@ -1343,7 +1502,7 @@
     </div>
 
     <script>
-        // Enhanced ExpenseTracker Class with Download Features
+        // Enhanced ExpenseTracker Class with All Backup Features
         class ExpenseTracker {
             constructor() {
                 this.categories = [];
@@ -1555,6 +1714,39 @@
                     this.hideDownloadOverlay();
                 });
                 
+                // New backup system event listeners
+                document.getElementById('generateCopyData').addEventListener('click', () => {
+                    this.generateManualCopyData();
+                });
+                
+                document.getElementById('copyToClipboard').addEventListener('click', () => {
+                    this.copyManualDataToClipboard();
+                });
+                
+                document.getElementById('clearCopyArea').addEventListener('click', () => {
+                    this.clearManualCopyArea();
+                });
+                
+                document.getElementById('sendEmailBackup').addEventListener('click', () => {
+                    this.sendEmailBackup();
+                });
+                
+                document.getElementById('printSummary').addEventListener('click', () => {
+                    this.printSummaryToPDF();
+                });
+                
+                document.getElementById('printFullReport').addEventListener('click', () => {
+                    this.printFullReportToPDF();
+                });
+                
+                document.getElementById('printCharts').addEventListener('click', () => {
+                    this.printChartsToPDF();
+                });
+                
+                document.getElementById('validateBackup').addEventListener('click', () => {
+                    this.validateBackupFile();
+                });
+                
                 this.populateReportPeriods();
             }
             
@@ -1575,9 +1767,561 @@
                     this.renderLendBorrowRecords();
                 } else if (sectionId === 'analytics') {
                     this.renderAnalytics();
+                } else if (sectionId === 'backup') {
+                    this.generateManualCopyData();
                 }
             }
             
+            // MANUAL COPY SYSTEM (easiest, works offline)
+            generateManualCopyData() {
+                try {
+                    const data = {
+                        categories: this.categories,
+                        budgets: this.budgets,
+                        transactions: this.transactions,
+                        lendBorrowRecords: this.lendBorrowRecords,
+                        backupDate: new Date().toISOString(),
+                        app: "Meownyyy Expense Tracker"
+                    };
+                    
+                    const dataStr = JSON.stringify(data, null, 2);
+                    document.getElementById('manualCopyArea').value = dataStr;
+                    
+                    this.showCopyStatus('Data generated successfully! You can now copy it.', 'success');
+                } catch (error) {
+                    console.error('Manual copy error:', error);
+                    this.showCopyStatus('Failed to generate data. Please try again.', 'error');
+                }
+            }
+            
+            copyManualDataToClipboard() {
+                const copyArea = document.getElementById('manualCopyArea');
+                if (!copyArea.value) {
+                    this.showCopyStatus('Please generate data first.', 'error');
+                    return;
+                }
+                
+                try {
+                    copyArea.select();
+                    document.execCommand('copy');
+                    this.showCopyStatus('Data copied to clipboard!', 'success');
+                } catch (error) {
+                    console.error('Copy error:', error);
+                    this.showCopyStatus('Failed to copy data. Please try again.', 'error');
+                }
+            }
+            
+            clearManualCopyArea() {
+                document.getElementById('manualCopyArea').value = '';
+                document.getElementById('copyStatus').className = 'email-status';
+                document.getElementById('copyStatus').textContent = '';
+            }
+            
+            showCopyStatus(message, type) {
+                const statusElement = document.getElementById('copyStatus');
+                statusElement.textContent = message;
+                statusElement.className = `email-status ${type}`;
+            }
+            
+            // EMAIL BACKUP SYSTEM (good for cloud storage)
+            sendEmailBackup() {
+                const email = document.getElementById('emailAddress').value;
+                const subject = document.getElementById('backupSubject').value || 'Expense Tracker Backup';
+                
+                if (!email) {
+                    this.showEmailStatus('Please enter an email address.', 'error');
+                    return;
+                }
+                
+                try {
+                    const data = {
+                        categories: this.categories,
+                        budgets: this.budgets,
+                        transactions: this.transactions,
+                        lendBorrowRecords: this.lendBorrowRecords,
+                        backupDate: new Date().toISOString(),
+                        app: "Meownyyy Expense Tracker"
+                    };
+                    
+                    const dataStr = JSON.stringify(data, null, 2);
+                    const fileName = `meownyyy-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    
+                    // Create a mailto link with the backup data as attachment simulation
+                    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+                        'Hello!\n\nPlease find your expense tracker backup attached.\n\n' +
+                        'To restore your data:\n' +
+                        '1. Copy the text below\n' +
+                        '2. Go to the Backup section in the app\n' +
+                        '3. Paste the data in the Manual Copy area\n' +
+                        '4. Click "Restore Data"\n\n' +
+                        '--- BEGIN BACKUP DATA ---\n' +
+                        dataStr +
+                        '\n--- END BACKUP DATA ---\n\n' +
+                        'Best regards,\nMeownyyy Expense Tracker'
+                    )}`;
+                    
+                    // Open the email client
+                    window.location.href = mailtoLink;
+                    
+                    this.showEmailStatus('Email client opened with backup data. Please send the email to complete the backup.', 'success');
+                } catch (error) {
+                    console.error('Email backup error:', error);
+                    this.showEmailStatus('Failed to prepare email backup. Please try again.', 'error');
+                }
+            }
+            
+            showEmailStatus(message, type) {
+                const statusElement = document.getElementById('emailStatus');
+                statusElement.textContent = message;
+                statusElement.className = `email-status ${type}`;
+            }
+            
+            // PRINT TO PDF (for reports)
+            printSummaryToPDF() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const now = new Date();
+                    const title = `Expense Summary - ${now.toLocaleDateString()}`;
+                    
+                    doc.setFontSize(20);
+                    doc.text(title, 105, 15, { align: 'center' });
+                    
+                    // Add summary data
+                    const totalIncome = this.transactions
+                        .filter(t => t.type === 'income')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    const totalExpenses = this.transactions
+                        .filter(t => t.type === 'expense')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    const balance = totalIncome - totalExpenses;
+                    
+                    doc.setFontSize(12);
+                    doc.text('Financial Summary', 14, 30);
+                    
+                    doc.setFillColor(240, 240, 240);
+                    doc.rect(14, 35, 182, 25, 'F');
+                    
+                    doc.text(`Total Income: ₹${this.formatCurrency(totalIncome)}`, 20, 45);
+                    doc.text(`Total Expenses: ₹${this.formatCurrency(totalExpenses)}`, 20, 55);
+                    doc.text(`Balance: ₹${this.formatCurrency(balance)}`, 120, 45);
+                    doc.setTextColor(balance >= 0 ? 0 : 255, balance >= 0 ? 128 : 0, 0);
+                    doc.text(`Net ${balance >= 0 ? 'Profit' : 'Loss'}: ₹${this.formatCurrency(Math.abs(balance))}`, 120, 55);
+                    
+                    // Add recent transactions
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Recent Transactions', 14, 70);
+                    
+                    const recentTransactions = [...this.transactions]
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .slice(0, 10);
+                    
+                    if (recentTransactions.length > 0) {
+                        const tableColumn = ["Date", "Description", "Amount"];
+                        const tableRows = [];
+                        
+                        recentTransactions.forEach(transaction => {
+                            const category = this.categories.find(c => c.id === transaction.categoryId);
+                            const transactionDate = new Date(transaction.date);
+                            const transactionRow = [
+                                transactionDate.toLocaleDateString(),
+                                `${transaction.description} (${category ? category.name : 'Uncategorized'})`,
+                                `${transaction.type === 'income' ? '+' : '-'}₹${this.formatCurrency(transaction.amount)}`
+                            ];
+                            tableRows.push(transactionRow);
+                        });
+                        
+                        doc.autoTable({
+                            head: [tableColumn],
+                            body: tableRows,
+                            startY: 75,
+                            styles: { fontSize: 8 },
+                            headStyles: { fillColor: [255, 158, 170] },
+                            alternateRowStyles: { fillColor: [240, 240, 240] }
+                        });
+                    } else {
+                        doc.text('No transactions found.', 14, 75);
+                    }
+                    
+                    const pdfOutput = doc.output();
+                    
+                    this.showDownloadOverlay(
+                        'Choose how you want to download the summary PDF:',
+                        pdfOutput,
+                        `expense-summary-${now.toISOString().split('T')[0]}.pdf`,
+                        'pdf'
+                    );
+                    
+                } catch (error) {
+                    console.error('PDF print error:', error);
+                    this.showNotification('Failed to generate PDF. Please try again.', 'error');
+                }
+            }
+            
+            printFullReportToPDF() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const now = new Date();
+                    const title = `Full Expense Report - ${now.toLocaleDateString()}`;
+                    
+                    doc.setFontSize(20);
+                    doc.text(title, 105, 15, { align: 'center' });
+                    
+                    // Add all transactions
+                    doc.setFontSize(12);
+                    doc.text('All Transactions', 14, 30);
+                    
+                    if (this.transactions.length > 0) {
+                        const tableColumn = ["Date", "Type", "Category", "Description", "Amount"];
+                        const tableRows = [];
+                        
+                        this.transactions.forEach(transaction => {
+                            const category = this.categories.find(c => c.id === transaction.categoryId);
+                            const transactionDate = new Date(transaction.date);
+                            const transactionRow = [
+                                transactionDate.toLocaleDateString(),
+                                transaction.type,
+                                category ? category.name : 'Uncategorized',
+                                transaction.description,
+                                `${transaction.type === 'income' ? '+' : '-'}₹${this.formatCurrency(transaction.amount)}`
+                            ];
+                            tableRows.push(transactionRow);
+                        });
+                        
+                        doc.autoTable({
+                            head: [tableColumn],
+                            body: tableRows,
+                            startY: 35,
+                            styles: { fontSize: 6 },
+                            headStyles: { fillColor: [255, 158, 170] },
+                            alternateRowStyles: { fillColor: [240, 240, 240] }
+                        });
+                    } else {
+                        doc.text('No transactions found.', 14, 35);
+                    }
+                    
+                    const pdfOutput = doc.output();
+                    
+                    this.showDownloadOverlay(
+                        'Choose how you want to download the full report PDF:',
+                        pdfOutput,
+                        `full-expense-report-${now.toISOString().split('T')[0]}.pdf`,
+                        'pdf'
+                    );
+                    
+                } catch (error) {
+                    console.error('Full report PDF error:', error);
+                    this.showNotification('Failed to generate full report PDF. Please try again.', 'error');
+                }
+            }
+            
+            printChartsToPDF() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const now = new Date();
+                    const title = `Expense Charts - ${now.toLocaleDateString()}`;
+                    
+                    doc.setFontSize(20);
+                    doc.text(title, 105, 15, { align: 'center' });
+                    
+                    // Add chart descriptions
+                    doc.setFontSize(12);
+                    doc.text('Income vs Expenses', 14, 30);
+                    doc.text('This chart shows the distribution of your income and expenses.', 14, 40);
+                    
+                    doc.text('Expenses by Category', 14, 60);
+                    doc.text('This chart shows how your expenses are distributed across categories.', 14, 70);
+                    
+                    doc.text('Monthly Trends', 14, 90);
+                    doc.text('This chart shows your income and expense trends over time.', 14, 100);
+                    
+                    doc.text('Budget vs Actual', 14, 120);
+                    doc.text('This chart compares your budgeted amounts with actual spending.', 14, 130);
+                    
+                    const pdfOutput = doc.output();
+                    
+                    this.showDownloadOverlay(
+                        'Choose how you want to download the charts PDF:',
+                        pdfOutput,
+                        `expense-charts-${now.toISOString().split('T')[0]}.pdf`,
+                        'pdf'
+                    );
+                    
+                } catch (error) {
+                    console.error('Charts PDF error:', error);
+                    this.showNotification('Failed to generate charts PDF. Please try again.', 'error');
+                }
+            }
+            
+            // FILE IMPORT (easy restoration)
+            validateBackupFile() {
+                const fileInput = document.getElementById('restoreFile');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    this.showImportStatus('Please select a backup file first.', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.categories && data.budgets && data.transactions && data.lendBorrowRecords) {
+                            this.showImportStatus('Backup file is valid and ready for restoration.', 'success');
+                        } else {
+                            this.showImportStatus('Invalid backup file format. Missing required data.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Validation error:', error);
+                        this.showImportStatus('Error reading backup file. File may be corrupted.', 'error');
+                    }
+                };
+                reader.onerror = () => {
+                    this.showImportStatus('Error reading file.', 'error');
+                };
+                reader.readAsText(file);
+            }
+            
+            showImportStatus(message, type) {
+                const statusElement = document.getElementById('importStatus');
+                statusElement.textContent = message;
+                statusElement.className = `email-status ${type}`;
+            }
+            
+            // COMPLETE BACKUP SYSTEM (all features combined)
+            backupData() {
+                try {
+                    const data = {
+                        categories: this.categories,
+                        budgets: this.budgets,
+                        transactions: this.transactions,
+                        lendBorrowRecords: this.lendBorrowRecords,
+                        backupDate: new Date().toISOString(),
+                        app: "Meownyyy Expense Tracker",
+                        version: "1.0"
+                    };
+                    
+                    const dataStr = JSON.stringify(data, null, 2);
+                    const fileName = `meownyyy-complete-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    
+                    this.showDownloadOverlay(
+                        'Choose how you want to backup your complete data:',
+                        dataStr,
+                        fileName,
+                        'json'
+                    );
+                    
+                } catch (error) {
+                    console.error('Backup error:', error);
+                    this.showNotification('Failed to create backup. Please try again.', 'error');
+                }
+            }
+            
+            restoreData() {
+                const fileInput = document.getElementById('restoreFile');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    this.showImportStatus('Please select a backup file.', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.categories && data.budgets && data.transactions && data.lendBorrowRecords) {
+                            this.categories = data.categories;
+                            this.budgets = data.budgets;
+                            this.transactions = data.transactions;
+                            this.lendBorrowRecords = data.lendBorrowRecords;
+                            this.saveData();
+                            this.updateUI();
+                            
+                            this.showImportStatus('Data restored successfully!', 'success');
+                            fileInput.value = '';
+                        } else {
+                            this.showImportStatus('Invalid backup file format.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Restore error:', error);
+                        this.showImportStatus('Error reading backup file.', 'error');
+                    }
+                };
+                reader.onerror = () => {
+                    this.showImportStatus('Error reading file.', 'error');
+                };
+                reader.readAsText(file);
+            }
+            
+            // DOWNLOAD OVERLAY METHODS
+            showDownloadOverlay(message, data, fileName, fileType = 'json') {
+                this.currentDownloadData = data;
+                this.currentFileName = fileName;
+                this.currentFileType = fileType;
+                
+                if (fileType === 'json') {
+                    this.currentFileBlob = new Blob([data], { type: 'application/json' });
+                } else if (fileType === 'pdf') {
+                    this.currentFileBlob = new Blob([data], { type: 'application/pdf' });
+                } else if (fileType === 'excel') {
+                    this.currentFileBlob = new Blob([this.s2ab(data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                }
+                
+                document.getElementById('downloadTitle').textContent = 'Download Options';
+                document.getElementById('downloadMessage').textContent = message;
+                document.getElementById('fileNameDisplay').textContent = fileName;
+                document.getElementById('fileTypeDisplay').textContent = fileType.toUpperCase();
+                document.getElementById('fileSizeDisplay').textContent = this.formatFileSize(this.currentFileBlob.size);
+                document.getElementById('guideFileName').textContent = fileName;
+                
+                if (fileType === 'json') {
+                    document.getElementById('filePreviewContainer').style.display = 'block';
+                    document.getElementById('filePreview').textContent = data.substring(0, 1000) + (data.length > 1000 ? '...' : '');
+                } else {
+                    document.getElementById('filePreviewContainer').style.display = 'none';
+                }
+                
+                document.getElementById('copySuccess').style.display = 'none';
+                document.getElementById('stepByStepGuide').style.display = 'none';
+                
+                document.getElementById('downloadOverlay').classList.add('active');
+            }
+
+            s2ab(s) {
+                const buf = new ArrayBuffer(s.length);
+                const view = new Uint8Array(buf);
+                for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            hideDownloadOverlay() {
+                document.getElementById('downloadOverlay').classList.remove('active');
+                this.currentDownloadData = null;
+                this.currentFileName = null;
+                this.currentFileType = null;
+                this.currentFileBlob = null;
+            }
+
+            performDirectDownload() {
+                if (!this.currentFileBlob || !this.currentFileName) return;
+                
+                try {
+                    const url = URL.createObjectURL(this.currentFileBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = this.currentFileName;
+                    link.style.display = 'none';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    
+                    this.showNotification('Download started!', 'success');
+                    this.hideDownloadOverlay();
+                } catch (error) {
+                    console.error('Download error:', error);
+                    this.showNotification('Download failed. Try "Create File" option.', 'error');
+                }
+            }
+
+            createAndDownloadFile() {
+                if (!this.currentFileBlob || !this.currentFileName) return;
+                
+                try {
+                    const url = URL.createObjectURL(this.currentFileBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = this.currentFileName;
+                    link.style.display = 'none';
+                    
+                    document.body.appendChild(link);
+                    
+                    const event = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    
+                    link.dispatchEvent(event);
+                    
+                    if (this.currentFileType === 'pdf') {
+                        setTimeout(() => {
+                            const pdfWindow = window.open(url, '_blank');
+                            if (!pdfWindow) {
+                                this.showNotification('Popup blocked! Please allow popups and try again.', 'error');
+                            }
+                        }, 1000);
+                    }
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 1000);
+                    
+                    this.showNotification('File creation initiated!', 'success');
+                    this.hideDownloadOverlay();
+                    
+                } catch (error) {
+                    console.error('File creation error:', error);
+                    this.showNotification('File creation failed. Try "Copy Data" option.', 'error');
+                }
+            }
+
+            copyDataToClipboard() {
+                if (!this.currentDownloadData) return;
+                
+                try {
+                    navigator.clipboard.writeText(this.currentDownloadData).then(() => {
+                        document.getElementById('copySuccess').style.display = 'block';
+                        document.getElementById('stepByStepGuide').style.display = 'block';
+                        this.showNotification('Data copied to clipboard!', 'success');
+                        
+                        setTimeout(() => {
+                            document.getElementById('copySuccess').style.display = 'none';
+                        }, 5000);
+                    }).catch(() => {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = this.currentDownloadData;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        document.getElementById('copySuccess').style.display = 'block';
+                        document.getElementById('stepByStepGuide').style.display = 'block';
+                        this.showNotification('Data copied to clipboard!', 'success');
+                        
+                        setTimeout(() => {
+                            document.getElementById('copySuccess').style.display = 'none';
+                        }, 5000);
+                    });
+                } catch (error) {
+                    this.showNotification('Failed to copy data. Try direct download.', 'error');
+                }
+            }
+            
+            // EXISTING METHODS FROM ORIGINAL CODE
             addTransaction() {
                 const type = document.getElementById('type').value;
                 const amount = parseFloat(document.getElementById('amount').value);
@@ -1858,227 +2602,6 @@
                     this.renderLendBorrowRecords();
                     this.showNotification('Record deleted successfully!', 'success');
                 }
-            }
-            
-            // Download Methods
-            showDownloadOverlay(message, data, fileName, fileType = 'json') {
-                this.currentDownloadData = data;
-                this.currentFileName = fileName;
-                this.currentFileType = fileType;
-                
-                if (fileType === 'json') {
-                    this.currentFileBlob = new Blob([data], { type: 'application/json' });
-                } else if (fileType === 'pdf') {
-                    this.currentFileBlob = new Blob([data], { type: 'application/pdf' });
-                } else if (fileType === 'excel') {
-                    this.currentFileBlob = new Blob([this.s2ab(data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                }
-                
-                document.getElementById('downloadTitle').textContent = 'Download Options';
-                document.getElementById('downloadMessage').textContent = message;
-                document.getElementById('fileNameDisplay').textContent = fileName;
-                document.getElementById('fileTypeDisplay').textContent = fileType.toUpperCase();
-                document.getElementById('fileSizeDisplay').textContent = this.formatFileSize(this.currentFileBlob.size);
-                document.getElementById('guideFileName').textContent = fileName;
-                
-                if (fileType === 'json') {
-                    document.getElementById('filePreviewContainer').style.display = 'block';
-                    document.getElementById('filePreview').textContent = data.substring(0, 1000) + (data.length > 1000 ? '...' : '');
-                } else {
-                    document.getElementById('filePreviewContainer').style.display = 'none';
-                }
-                
-                document.getElementById('copySuccess').style.display = 'none';
-                document.getElementById('stepByStepGuide').style.display = 'none';
-                
-                document.getElementById('downloadOverlay').classList.add('active');
-            }
-
-            s2ab(s) {
-                const buf = new ArrayBuffer(s.length);
-                const view = new Uint8Array(buf);
-                for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-                return buf;
-            }
-
-            formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            }
-
-            hideDownloadOverlay() {
-                document.getElementById('downloadOverlay').classList.remove('active');
-                this.currentDownloadData = null;
-                this.currentFileName = null;
-                this.currentFileType = null;
-                this.currentFileBlob = null;
-            }
-
-            performDirectDownload() {
-                if (!this.currentFileBlob || !this.currentFileName) return;
-                
-                try {
-                    const url = URL.createObjectURL(this.currentFileBlob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = this.currentFileName;
-                    link.style.display = 'none';
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    setTimeout(() => URL.revokeObjectURL(url), 100);
-                    
-                    this.showNotification('Download started!', 'success');
-                    this.hideDownloadOverlay();
-                } catch (error) {
-                    console.error('Download error:', error);
-                    this.showNotification('Download failed. Try "Create File" option.', 'error');
-                }
-            }
-
-            createAndDownloadFile() {
-                if (!this.currentFileBlob || !this.currentFileName) return;
-                
-                try {
-                    const url = URL.createObjectURL(this.currentFileBlob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = this.currentFileName;
-                    link.style.display = 'none';
-                    
-                    document.body.appendChild(link);
-                    
-                    const event = new MouseEvent('click', {
-                        view: window,
-                        bubbles: true,
-                        cancelable: true
-                    });
-                    
-                    link.dispatchEvent(event);
-                    
-                    if (this.currentFileType === 'pdf') {
-                        setTimeout(() => {
-                            const pdfWindow = window.open(url, '_blank');
-                            if (!pdfWindow) {
-                                this.showNotification('Popup blocked! Please allow popups and try again.', 'error');
-                            }
-                        }, 1000);
-                    }
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
-                    }, 1000);
-                    
-                    this.showNotification('File creation initiated!', 'success');
-                    this.hideDownloadOverlay();
-                    
-                } catch (error) {
-                    console.error('File creation error:', error);
-                    this.showNotification('File creation failed. Try "Copy Data" option.', 'error');
-                }
-            }
-
-            copyDataToClipboard() {
-                if (!this.currentDownloadData) return;
-                
-                try {
-                    navigator.clipboard.writeText(this.currentDownloadData).then(() => {
-                        document.getElementById('copySuccess').style.display = 'block';
-                        document.getElementById('stepByStepGuide').style.display = 'block';
-                        this.showNotification('Data copied to clipboard!', 'success');
-                        
-                        setTimeout(() => {
-                            document.getElementById('copySuccess').style.display = 'none';
-                        }, 5000);
-                    }).catch(() => {
-                        const textArea = document.createElement('textarea');
-                        textArea.value = this.currentDownloadData;
-                        document.body.appendChild(textArea);
-                        textArea.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(textArea);
-                        
-                        document.getElementById('copySuccess').style.display = 'block';
-                        document.getElementById('stepByStepGuide').style.display = 'block';
-                        this.showNotification('Data copied to clipboard!', 'success');
-                        
-                        setTimeout(() => {
-                            document.getElementById('copySuccess').style.display = 'none';
-                        }, 5000);
-                    });
-                } catch (error) {
-                    this.showNotification('Failed to copy data. Try direct download.', 'error');
-                }
-            }
-
-            backupData() {
-                try {
-                    const data = {
-                        categories: this.categories,
-                        budgets: this.budgets,
-                        transactions: this.transactions,
-                        lendBorrowRecords: this.lendBorrowRecords,
-                        backupDate: new Date().toISOString()
-                    };
-                    
-                    const dataStr = JSON.stringify(data, null, 2);
-                    const fileName = `meownyyy-backup-${new Date().toISOString().split('T')[0]}.json`;
-                    
-                    this.showDownloadOverlay(
-                        'Choose how you want to backup your data:',
-                        dataStr,
-                        fileName,
-                        'json'
-                    );
-                    
-                } catch (error) {
-                    console.error('Backup error:', error);
-                    this.showNotification('Failed to create backup. Please try again.', 'error');
-                }
-            }
-            
-            restoreData() {
-                const fileInput = document.getElementById('restoreFile');
-                const file = fileInput.files[0];
-                
-                if (!file) {
-                    this.showNotification('Please select a backup file.', 'error');
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        
-                        if (data.categories && data.budgets && data.transactions && data.lendBorrowRecords) {
-                            this.categories = data.categories;
-                            this.budgets = data.budgets;
-                            this.transactions = data.transactions;
-                            this.lendBorrowRecords = data.lendBorrowRecords;
-                            this.saveData();
-                            this.updateUI();
-                            
-                            this.showNotification('Data restored successfully!', 'success');
-                            fileInput.value = '';
-                        } else {
-                            this.showNotification('Invalid backup file format.', 'error');
-                        }
-                    } catch (error) {
-                        console.error('Restore error:', error);
-                        this.showNotification('Error reading backup file.', 'error');
-                    }
-                };
-                reader.onerror = () => {
-                    this.showNotification('Error reading file.', 'error');
-                };
-                reader.readAsText(file);
             }
             
             setupCalculator() {
